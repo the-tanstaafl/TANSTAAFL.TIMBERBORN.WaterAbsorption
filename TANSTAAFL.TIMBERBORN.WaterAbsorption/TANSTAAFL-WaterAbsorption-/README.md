@@ -1,15 +1,15 @@
 # WaterAbsorption
 
-WaterAbsorption is a Timberborn mod that alters the evaporation rate of water and adds absorption of water to Growables.
+WaterAbsorption is a Timberborn mod that alters the evaporation rate of water and adds absorption of water by Growables.
 
 # Usage
 
 There are six values to alter, listed below:
 
-* NormalEvaporationSpeedMultiplier: Number by wich the normal water evaporation is multiplied (Default 0.25f)
-* FastEvaporationSpeedMultiplier: Number by wich the fast water evaporation (when the level is below 0.2) is multiplied (Default 0.25f)
-* IrrigatorTickIncrement: 1 over how many times Growables have to tick for 1 water be consumed in the Irrigator (Default 0.001f)
-* GrowableTickWaterDepth: By how much the closest water tile of a Growable is reduced when it ticks (Default -0.000005f)
+* NormalEvaporationSpeedMultiplier: Number by wich the normal water evaporation is multiplied (Default 0.25)
+* FastEvaporationSpeedMultiplier: Number by wich the fast water evaporation (when the level is below 0.2) is multiplied (Default 0.25)
+* IrrigatorTickIncrement: 1 over how many times Growables have to tick for 1 water be consumed in the Irrigator (Default 0.001)
+* GrowableTickWaterDepth: By how much the closest water tile of a Growable is reduced when it ticks (Default -0.000005 or -5E-06)
 * MaxTicks: Every Growable is processed in a game Tick. MaxTicks has to be higher than the number of Growables used (Default 13)
 * MaxSearchDepth: How far a Growable will search for water to absorb. Relevant if buildings that moisture further like the Big Irrigation Tower from the mod Water Extention are used (Default 25)
 
