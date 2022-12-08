@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -50,6 +51,16 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
             //__instance._waterSimulationSettings._fastEvaporationDepthThreshold
             __instance._waterSimulationSettings._normalEvaporationSpeed *= 0.25f;
             __instance._waterSimulationSettings._fastEvaporationSpeed *= 0.25f;
+        }
+
+        [HarmonyPatch(typeof(SoilMoistureSimulator), nameof(SoilMoistureSimulator.Load))]
+        public static void Postfix(SoilMoistureSimulator __instance)
+        {
+            StreamWriter sw = new StreamWriter("D:\\Temp\\Test.txt");
+
+            sw.WriteLine(string.Join(";", __instance.MoistureLevels));
+
+            sw.Close();
         }
     }
 }

@@ -16,13 +16,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
     {
         internal static bool[][] _wateredMap;
 
-        internal static void GenerateMap(WaterMap _waterMap, MapIndexService _mapIndexService)
-        {
-            GenerateWateredMap(_waterMap, _mapIndexService);
-            RegisteredIrrigator.GenerateIrrigationTowerLocations();
-        }
-
-        private static void GenerateWateredMap(WaterMap _waterMap, MapIndexService _mapIndexService)
+        internal static void GenerateWateredMap(WaterMap _waterMap, MapIndexService _mapIndexService)
         {
             var mapSize = _mapIndexService.MapSize;
             var waterDepths = _waterMap.WaterDepths;

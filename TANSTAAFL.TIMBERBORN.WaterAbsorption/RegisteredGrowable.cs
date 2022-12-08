@@ -19,6 +19,9 @@ using Timberborn.SoilMoistureSystem;
 using Timberborn.WaterSystem;
 using Timberborn.Goods;
 using UnityEngine;
+using Timberborn.IrrigationSystem;
+using System.IO;
+using Timberborn.Common;
 
 namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 {
@@ -36,22 +39,35 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         private static MapIndexService _mapIndexService;
         private static WaterSimulator _waterSimulator;
         private static WaterMap _waterMap;
+        private static SoilMoistureSimulator _soilMoistureSimulator;
 
-        private static readonly (int x, int y)[] _closestTiles = new (int, int)[]
-        {
-            (0, 0), (0, -1), (-1, 0), (1, 0), (0, 1), (-1, -1), (1, -1), (-1, 1), (1, 1), (0, -2), (-2, 0), (2, 0), (0, 2), (-1, -2), (1, -2), (-2, -1), (2, -1), (-2, 1), (2, 1), (-1, 2), (1, 2), (-2, -2), (2, -2), (-2, 2), (2, 2), (0, -3), (-3, 0), (3, 0), (0, 3), (-1, -3), (1, -3), (-3, -1), (3, -1), (-3, 1), (3, 1), (-1, 3), (1, 3), (-2, -3), (2, -3), (-3, -2), (3, -2), (-3, 2), (3, 2), (-2, 3), (2, 3), (0, -4), (-4, 0), (4, 0), (0, 4), (-1, -4), (1, -4), (-4, -1), (4, -1), (-4, 1), (4, 1), (-1, 4), (1, 4), (-3, -3), (3, -3), (-3, 3), (3, 3), (-2, -4), (2, -4), (-4, -2), (4, -2), (-4, 2), (4, 2), (-2, 4), (2, 4), (0, -5), (-3, -4), (3, -4), (-4, -3), (4, -3), (-5, 0), (5, 0), (-4, 3), (4, 3), (-3, 4), (3, 4), (0, 5), (-1, -5), (1, -5), (-5, -1), (5, -1), (-5, 1), (5, 1), (-1, 5), (1, 5), (-2, -5), (2, -5), (-5, -2), (5, -2), (-5, 2), (5, 2), (-2, 5), (2, 5), (-4, -4), (4, -4), (-4, 4), (4, 4), (-3, -5), (3, -5), (-5, -3), (5, -3), (-5, 3), (5, 3), (-3, 5), (3, 5), (0, -6), (-6, 0), (6, 0), (0, 6), (-1, -6), (1, -6), (-6, -1), (6, -1), (-6, 1), (6, 1), (-1, 6), (1, 6), (-2, -6), (2, -6), (-6, -2), (6, -2), (-6, 2), (6, 2), (-2, 6), (2, 6), (-4, -5), (4, -5), (-5, -4), (5, -4), (-5, 4), (5, 4), (-4, 5), (4, 5), (-3, -6), (3, -6), (-6, -3), (6, -3), (-6, 3), (6, 3), (-3, 6), (3, 6), (0, -7), (-7, 0), (7, 0), (0, 7), (-1, -7), (1, -7), (-5, -5), (5, -5), (-7, -1), (7, -1), (-7, 1), (7, 1), (-5, 5), (5, 5), (-1, 7), (1, 7), (-4, -6), (4, -6), (-6, -4), (6, -4), (-6, 4), (6, 4), (-4, 6), (4, 6), (-2, -7), (2, -7), (-7, -2), (7, -2), (-7, 2), (7, 2), (-2, 7), (2, 7), (-3, -7), (3, -7), (-7, -3), (7, -3), (-7, 3), (7, 3), (-3, 7), (3, 7), (-5, -6), (5, -6), (-6, -5), (6, -5), (-6, 5), (6, 5), (-5, 6), (5, 6), (0, -8), (-8, 0), (8, 0), (0, 8), (-1, -8), (1, -8), (-4, -7), (4, -7), (-7, -4), (7, -4), (-8, -1), (8, -1), (-8, 1), (8, 1), (-7, 4), (7, 4), (-4, 7), (4, 7), (-1, 8), (1, 8), (-2, -8), (2, -8), (-8, -2), (8, -2), (-8, 2), (8, 2), (-2, 8), (2, 8), (-6, -6), (6, -6), (-6, 6), (6, 6), (-3, -8), (3, -8), (-8, -3), (8, -3), (-8, 3), (8, 3), (-3, 8), (3, 8), (-5, -7), (5, -7), (-7, -5), (7, -5), (-7, 5), (7, 5), (-5, 7), (5, 7), (-4, -8), (4, -8), (-8, -4), (8, -4), (-8, 4), (8, 4), (-4, 8), (4, 8), (0, -9), (-9, 0), (9, 0), (0, 9), (-1, -9), (1, -9), (-9, -1), (9, -1), (-9, 1), (9, 1), (-1, 9), (1, 9), (-2, -9), (2, -9), (-6, -7), (6, -7), (-7, -6), (7, -6), (-9, -2), (9, -2), (-9, 2), (9, 2), (-7, 6), (7, 6), (-6, 7), (6, 7), (-2, 9), (2, 9), (-5, -8), (5, -8), (-8, -5), (8, -5), (-8, 5), (8, 5), (-5, 8), (5, 8), (-3, -9), (3, -9), (-9, -3), (9, -3), (-9, 3), (9, 3), (-3, 9), (3, 9), (-4, -9), (4, -9), (-9, -4), (9, -4), (-9, 4), (9, 4), (-4, 9), (4, 9), (-7, -7), (7, -7), (-7, 7), (7, 7), (0, -10), (-6, -8), (6, -8), (-8, -6), (8, -6), (-10, 0), (10, 0), (-8, 6), (8, 6), (-6, 8), (6, 8), (0, 10), (-1, -10), (1, -10), (-10, -1), (10, -1), (-10, 1), (10, 1), (-1, 10), (1, 10), (-2, -10), (2, -10), (-10, -2), (10, -2), (-10, 2), (10, 2), (-2, 10), (2, 10), (-5, -9), (5, -9), (-9, -5), (9, -5), (-9, 5), (9, 5), (-5, 9), (5, 9), (-3, -10), (3, -10), (-10, -3), (10, -3), (-10, 3), (10, 3), (-3, 10), (3, 10), (-7, -8), (7, -8), (-8, -7), (8, -7), (-8, 7), (8, 7), (-7, 8), (7, 8), (-4, -10), (4, -10), (-10, -4), (10, -4), (-10, 4), (10, 4), (-4, 10), (4, 10), (-6, -9), (6, -9), (-9, -6), (9, -6), (-9, 6), (9, 6), (-6, 9), (6, 9), (0, -11), (-11, 0), (11, 0), (0, 11), (-1, -11), (1, -11), (-11, -1), (11, -1), (-11, 1), (11, 1), (-1, 11), (1, 11), (-2, -11), (2, -11), (-5, -10), (5, -10), (-10, -5), (10, -5), (-11, -2), (11, -2), (-11, 2), (11, 2), (-10, 5), (10, 5), (-5, 10), (5, 10), (-2, 11), (2, 11), (-8, -8), (8, -8), (-8, 8), (8, 8), (-3, -11), (3, -11), (-7, -9), (7, -9), (-9, -7), (9, -7), (-11, -3), (11, -3), (-11, 3), (11, 3), (-9, 7), (9, 7), (-7, 9), (7, 9), (-3, 11), (3, 11), (-6, -10), (6, -10), (-10, -6), (10, -6), (-10, 6), (10, 6), (-6, 10), (6, 10), (-4, -11), (4, -11), (-11, -4), (11, -4), (-11, 4), (11, 4), (-4, 11), (4, 11), (0, -12), (-12, 0), (12, 0), (0, 12), (-1, -12), (1, -12), (-8, -9), (8, -9), (-9, -8), (9, -8), (-12, -1), (12, -1), (-12, 1), (12, 1), (-9, 8), (9, 8), (-8, 9), (8, 9), (-1, 12), (1, 12), (-5, -11), (5, -11), (-11, -5), (11, -5), (-11, 5), (11, 5), (-5, 11), (5, 11), (-2, -12), (2, -12), (-12, -2), (12, -2), (-12, 2), (12, 2), (-2, 12), (2, 12), (-7, -10), (7, -10), (-10, -7), (10, -7), (-10, 7), (10, 7), (-7, 10), (7, 10), (-3, -12), (3, -12), (-12, -3), (12, -3), (-12, 3), (12, 3), (-3, 12), (3, 12), (-6, -11), (6, -11), (-11, -6), (11, -6), (-11, 6), (11, 6), (-6, 11), (6, 11), (-4, -12), (4, -12), (-12, -4), (12, -4), (-12, 4), (12, 4), (-4, 12), (4, 12), (-9, -9), (9, -9), (-9, 9), (9, 9), (-8, -10), (8, -10), (-10, -8), (10, -8), (-10, 8), (10, 8), (-8, 10), (8, 10), (0, -13), (-5, -12), (5, -12), (-12, -5), (12, -5), (-13, 0), (13, 0), (-12, 5), (12, 5), (-5, 12), (5, 12), (0, 13), (-1, -13), (1, -13), (-7, -11), (7, -11), (-11, -7), (11, -7), (-13, -1), (13, -1), (-13, 1), (13, 1), (-11, 7), (11, 7), (-7, 11), (7, 11), (-1, 13), (1, 13), (-2, -13), (2, -13), (-13, -2), (13, -2), (-13, 2), (13, 2), (-2, 13), (2, 13), (-3, -13), (3, -13), (-13, -3), (13, -3), (-13, 3), (13, 3), (-3, 13), (3, 13), (-6, -12), (6, -12), (-12, -6), (12, -6), (-12, 6), (12, 6), (-6, 12), (6, 12), (-9, -10), (9, -10), (-10, -9), (10, -9), (-10, 9), (10, 9), (-9, 10), (9, 10), (-4, -13), (4, -13), (-8, -11), (8, -11), (-11, -8), (11, -8), (-13, -4), (13, -4), (-13, 4), (13, 4), (-11, 8), (11, 8), (-8, 11), (8, 11), (-4, 13), (4, 13), (-7, -12), (7, -12), (-12, -7), (12, -7), (-12, 7), (12, 7), (-7, 12), (7, 12), (-5, -13), (5, -13), (-13, -5), (13, -5), (-13, 5), (13, 5), (-5, 13), (5, 13), (0, -14), (-14, 0), (14, 0), (0, 14), (-1, -14), (1, -14), (-14, -1), (14, -1), (-14, 1), (14, 1), (-1, 14), (1, 14), (-2, -14), (2, -14), (-10, -10), (10, -10), (-14, -2), (14, -2), (-14, 2), (14, 2), (-10, 10), (10, 10), (-2, 14), (2, 14), (-9, -11), (9, -11), (-11, -9), (11, -9), (-11, 9), (11, 9), (-9, 11), (9, 11), (-3, -14), (3, -14), (-6, -13), (6, -13), (-13, -6), (13, -6), (-14, -3), (14, -3), (-14, 3), (14, 3), (-13, 6), (13, 6), (-6, 13), (6, 13), (-3, 14), (3, 14), (-8, -12), (8, -12), (-12, -8), (12, -8), (-12, 8), (12, 8), (-8, 12), (8, 12), (-4, -14), (4, -14), (-14, -4), (14, -4), (-14, 4), (14, 4), (-4, 14), (4, 14), (-7, -13), (7, -13), (-13, -7), (13, -7), (-13, 7), (13, 7), (-7, 13), (7, 13), (-5, -14), (5, -14), (-10, -11), (10, -11), (-11, -10), (11, -10), (-14, -5), (14, -5), (-14, 5), (14, 5), (-11, 10), (11, 10), (-10, 11), (10, 11), (-5, 14), (5, 14), (0, -15), (-9, -12), (9, -12), (-12, -9), (12, -9), (-15, 0), (15, 0), (-12, 9), (12, 9), (-9, 12), (9, 12), (0, 15), (-1, -15), (1, -15), (-15, -1), (15, -1), (-15, 1), (15, 1), (-1, 15), (1, 15), (-2, -15), (2, -15), (-15, -2), (15, -2), (-15, 2), (15, 2), (-2, 15), (2, 15), (-6, -14), (6, -14), (-14, -6), (14, -6), (-14, 6), (14, 6), (-6, 14), (6, 14), (-8, -13), (8, -13), (-13, -8), (13, -8), (-13, 8), (13, 8), (-8, 13), (8, 13), (-3, -15), (3, -15), (-15, -3), (15, -3), (-15, 3), (15, 3), (-3, 15), (3, 15), (-4, -15), (4, -15), (-15, -4), (15, -4), (-15, 4), (15, 4), (-4, 15), (4, 15), (-11, -11), (11, -11), (-11, 11), (11, 11), (-10, -12), (10, -12), (-12, -10), (12, -10), (-12, 10), (12, 10), (-10, 12), (10, 12), (-7, -14), (7, -14), (-14, -7), (14, -7), (-14, 7), (14, 7), (-7, 14), (7, 14), (-5, -15), (5, -15), (-9, -13), (9, -13), (-13, -9), (13, -9), (-15, -5), (15, -5), (-15, 5), (15, 5), (-13, 9), (13, 9), (-9, 13), (9, 13), (-5, 15), (5, 15), (0, -16), (-16, 0), (16, 0), (0, 16), (-1, -16), (1, -16), (-16, -1), (16, -1), (-16, 1), (16, 1), (-1, 16), (1, 16), (-2, -16), (2, -16), (-8, -14), (8, -14), (-14, -8), (14, -8), (-16, -2), (16, -2), (-16, 2), (16, 2), (-14, 8), (14, 8), (-8, 14), (8, 14), (-2, 16), (2, 16), (-6, -15), (6, -15), (-15, -6), (15, -6), (-15, 6), (15, 6), (-6, 15), (6, 15), (-3, -16), (3, -16), (-11, -12), (11, -12), (-12, -11), (12, -11), (-16, -3), (16, -3), (-16, 3), (16, 3), (-12, 11), (12, 11), (-11, 12), (11, 12), (-3, 16), (3, 16), (-10, -13), (10, -13), (-13, -10), (13, -10), (-13, 10), (13, 10), (-10, 13), (10, 13), (-4, -16), (4, -16), (-16, -4), (16, -4), (-16, 4), (16, 4), (-4, 16), (4, 16), (-7, -15), (7, -15), (-15, -7), (15, -7), (-15, 7), (15, 7), (-7, 15), (7, 15), (-9, -14), (9, -14), (-14, -9), (14, -9), (-14, 9), (14, 9), (-9, 14), (9, 14), (-5, -16), (5, -16), (-16, -5), (16, -5), (-16, 5), (16, 5), (-5, 16), (5, 16), (-12, -12), (12, -12), (-12, 12), (12, 12), (0, -17), (-8, -15), (8, -15), (-15, -8), (15, -8), (-17, 0), (17, 0), (-15, 8), (15, 8), (-8, 15), (8, 15), (0, 17), (-1, -17), (1, -17), (-11, -13), (11, -13), (-13, -11), (13, -11), (-17, -1), (17, -1), (-17, 1), (17, 1), (-13, 11), (13, 11), (-11, 13), (11, 13), (-1, 17), (1, 17), (-6, -16), (6, -16), (-16, -6), (16, -6), (-16, 6), (16, 6), (-6, 16), (6, 16), (-2, -17), (2, -17), (-17, -2), (17, -2), (-17, 2), (17, 2), (-2, 17), (2, 17), (-10, -14), (10, -14), (-14, -10), (14, -10), (-14, 10), (14, 10), (-10, 14), (10, 14), (-3, -17), (3, -17), (-17, -3), (17, -3), (-17, 3), (17, 3), (-3, 17), (3, 17), (-4, -17), (4, -17), (-7, -16), (7, -16), (-16, -7), (16, -7), (-17, -4), (17, -4), (-17, 4), (17, 4), (-16, 7), (16, 7), (-7, 16), (7, 16), (-4, 17), (4, 17), (-9, -15), (9, -15), (-15, -9), (15, -9), (-15, 9), (15, 9), (-9, 15), (9, 15), (-12, -13), (12, -13), (-13, -12), (13, -12), (-13, 12), (13, 12), (-12, 13), (12, 13), (-5, -17), (5, -17), (-17, -5), (17, -5), (-17, 5), (17, 5), (-5, 17), (5, 17), (-11, -14), (11, -14), (-14, -11), (14, -11), (-14, 11), (14, 11), (-11, 14), (11, 14), (-8, -16), (8, -16), (-16, -8), (16, -8), (-16, 8), (16, 8), (-8, 16), (8, 16), (0, -18), (-18, 0), (18, 0), (0, 18), (-1, -18), (1, -18), (-6, -17), (6, -17), (-10, -15), (10, -15), (-15, -10), (15, -10), (-17, -6), (17, -6), (-18, -1), (18, -1), (-18, 1), (18, 1), (-17, 6), (17, 6), (-15, 10), (15, 10), (-10, 15), (10, 15), (-6, 17), (6, 17), (-1, 18), (1, 18), (-2, -18), (2, -18), (-18, -2), (18, -2), (-18, 2), (18, 2), (-2, 18), (2, 18), (-3, -18), (3, -18), (-18, -3), (18, -3), (-18, 3), (18, 3), (-3, 18), (3, 18), (-9, -16), (9, -16), (-16, -9), (16, -9), (-16, 9), (16, 9), (-9, 16), (9, 16), (-7, -17), (7, -17), (-13, -13), (13, -13), (-17, -7), (17, -7), (-17, 7), (17, 7), (-13, 13), (13, 13), (-7, 17), (7, 17), (-4, -18), (4, -18), (-12, -14), (12, -14), (-14, -12), (14, -12), (-18, -4), (18, -4), (-18, 4), (18, 4), (-14, 12), (14, 12), (-12, 14), (12, 14), (-4, 18), (4, 18), (-11, -15), (11, -15), (-15, -11), (15, -11), (-15, 11), (15, 11), (-11, 15), (11, 15), (-5, -18), (5, -18), (-18, -5), (18, -5), (-18, 5), (18, 5), (-5, 18), (5, 18), (-8, -17), (8, -17), (-17, -8), (17, -8), (-17, 8), (17, 8), (-8, 17), (8, 17), (-10, -16), (10, -16), (-16, -10), (16, -10), (-16, 10), (16, 10), (-10, 16), (10, 16), (-6, -18), (6, -18), (-18, -6), (18, -6), (-18, 6), (18, 6), (-6, 18), (6, 18), (0, -19), (-19, 0), (19, 0), (0, 19), (-1, -19), (1, -19), (-19, -1), (19, -1), (-19, 1), (19, 1), (-1, 19), (1, 19), (-2, -19), (2, -19), (-13, -14), (13, -14), (-14, -13), (14, -13), (-19, -2), (19, -2), (-19, 2), (19, 2), (-14, 13), (14, 13), (-13, 14), (13, 14), (-2, 19), (2, 19), (-12, -15), (12, -15), (-15, -12), (15, -12), (-15, 12), (15, 12), (-12, 15), (12, 15), (-3, -19), (3, -19), (-9, -17), (9, -17), (-17, -9), (17, -9), (-19, -3), (19, -3), (-19, 3), (19, 3), (-17, 9), (17, 9), (-9, 17), (9, 17), (-3, 19), (3, 19), (-7, -18), (7, -18), (-18, -7), (18, -7), (-18, 7), (18, 7), (-7, 18), (7, 18), (-4, -19), (4, -19), (-11, -16), (11, -16), (-16, -11), (16, -11), (-19, -4), (19, -4), (-19, 4), (19, 4), (-16, 11), (16, 11), (-11, 16), (11, 16), (-4, 19), (4, 19), (-5, -19), (5, -19), (-19, -5), (19, -5), (-19, 5), (19, 5), (-5, 19), (5, 19), (-8, -18), (8, -18), (-18, -8), (18, -8), (-18, 8), (18, 8), (-8, 18), (8, 18), (-10, -17), (10, -17), (-17, -10), (17, -10), (-17, 10), (17, 10), (-10, 17), (10, 17), (-14, -14), (14, -14), (-14, 14), (14, 14), (-13, -15), (13, -15), (-15, -13), (15, -13), (-15, 13), (15, 13), (-13, 15), (13, 15), (-6, -19), (6, -19), (-19, -6), (19, -6), (-19, 6), (19, 6), (-6, 19), (6, 19), (0, -20), (-12, -16), (12, -16), (-16, -12), (16, -12), (-20, 0), (-16, 12), (16, 12), (-12, 16), (12, 16), (-1, -20), (1, -20), (-20, -1), (-20, 1), (-2, -20), (2, -20), (-20, -2), (-20, 2), (-9, -18), (9, -18), (-18, -9), (18, -9), (-18, 9), (18, 9), (-9, 18), (9, 18), (-3, -20), (3, -20), (-20, -3), (-20, 3), (-7, -19), (7, -19), (-11, -17), (11, -17), (-17, -11), (17, -11), (-19, -7), (19, -7), (-19, 7), (19, 7), (-17, 11), (17, 11), (-11, 17), (11, 17), (-7, 19), (7, 19), (-4, -20), (4, -20), (-20, -4), (-20, 4), (-14, -15), (14, -15), (-15, -14), (15, -14), (-15, 14), (15, 14), (-14, 15), (14, 15), (-10, -18), (10, -18), (-18, -10), (18, -10), (-18, 10), (18, 10), (-10, 18), (10, 18), (-5, -20), (5, -20), (-8, -19), (8, -19), (-13, -16), (13, -16), (-16, -13), (16, -13), (-19, -8), (19, -8), (-20, -5), (-20, 5), (-19, 8), (19, 8), (-16, 13), (16, 13), (-13, 16), (13, 16), (-8, 19), (8, 19), (-12, -17), (12, -17), (-17, -12), (17, -12), (-17, 12), (17, 12), (-12, 17), (12, 17), (-6, -20), (6, -20), (-20, -6), (-20, 6), (-9, -19), (9, -19), (-19, -9), (19, -9), (-19, 9), (19, 9), (-9, 19), (9, 19), (-11, -18), (11, -18), (-18, -11), (18, -11), (-18, 11), (18, 11), (-11, 18), (11, 18), (-7, -20), (7, -20), (-20, -7), (-20, 7), (-15, -15), (15, -15), (-15, 15), (15, 15), (-14, -16), (14, -16), (-16, -14), (16, -14), (-16, 14), (16, 14), (-14, 16), (14, 16), (-13, -17), (13, -17), (-17, -13), (17, -13), (-17, 13), (17, 13), (-13, 17), (13, 17), (-10, -19), (10, -19), (-19, -10), (19, -10), (-19, 10), (19, 10), (-10, 19), (10, 19), (-8, -20), (8, -20), (-20, -8), (-20, 8), (-12, -18), (12, -18), (-18, -12), (18, -12), (-18, 12), (18, 12), (-12, 18), (12, 18), (-9, -20), (9, -20), (-15, -16), (15, -16), (-16, -15), (16, -15), (-20, -9), (-20, 9), (-16, 15), (16, 15), (-15, 16), (15, 16), (-11, -19), (11, -19), (-19, -11), (19, -11), (-19, 11), (19, 11), (-11, 19), (11, 19), (-14, -17), (14, -17), (-17, -14), (17, -14), (-17, 14), (17, 14), (-14, 17), (14, 17), (-13, -18), (13, -18), (-18, -13), (18, -13), (-18, 13), (18, 13), (-13, 18), (13, 18), (-10, -20), (10, -20), (-20, -10), (-20, 10), (-12, -19), (12, -19), (-19, -12), (19, -12), (-19, 12), (19, 12), (-12, 19), (12, 19), (-16, -16), (16, -16), (-16, 16), (16, 16), (-15, -17), (15, -17), (-17, -15), (17, -15), (-17, 15), (17, 15), (-15, 17), (15, 17), (-14, -18), (14, -18), (-18, -14), (18, -14), (-18, 14), (18, 14), (-14, 18), (14, 18), (-11, -20), (11, -20), (-20, -11), (-20, 11), (-13, -19), (13, -19), (-19, -13), (19, -13), (-19, 13), (19, 13), (-13, 19), (13, 19), (-12, -20), (12, -20), (-20, -12), (-20, 12), (-16, -17), (16, -17), (-17, -16), (17, -16), (-17, 16), (17, 16), (-16, 17), (16, 17), (-15, -18), (15, -18), (-18, -15), (18, -15), (-18, 15), (18, 15), (-15, 18), (15, 18), (-14, -19), (14, -19), (-19, -14), (19, -14), (-19, 14), (19, 14), (-14, 19), (14, 19), (-13, -20), (13, -20), (-20, -13), (-20, 13), (-17, -17), (17, -17), (-17, 17), (17, 17), (-16, -18), (16, -18), (-18, -16), (18, -16), (-18, 16), (18, 16), (-16, 18), (16, 18), (-15, -19), (15, -19), (-19, -15), (19, -15), (-19, 15), (19, 15), (-15, 19), (15, 19), (-14, -20), (14, -20), (-20, -14), (-20, 14), (-17, -18), (17, -18), (-18, -17), (18, -17), (-18, 17), (18, 17), (-17, 18), (17, 18), (-16, -19), (16, -19), (-19, -16), (19, -16), (-19, 16), (19, 16), (-16, 19), (16, 19), (-15, -20), (15, -20), (-20, -15), (-20, 15), (-18, -18), (18, -18), (-18, 18), (18, 18), (-17, -19), (17, -19), (-19, -17), (19, -17), (-19, 17), (19, 17), (-17, 19), (17, 19), (-16, -20), (16, -20), (-20, -16), (-20, 16), (-18, -19), (18, -19), (-19, -18), (19, -18), (-19, 18), (19, 18), (-18, 19), (18, 19), (-17, -20), (17, -20), (-20, -17), (-20, 17), (-19, -19), (19, -19), (-19, 19), (19, 19), (-18, -20), (18, -20), (-20, -18), (-20, 18), (-19, -20), (19, -20), (-20, -19), (-20, 19), (-20, -20)
-        };
+        private static readonly (int x, int y) _north = (0, -1);
+        private static readonly (int x, int y) _east = (-1, 0);
+        private static readonly (int x, int y) _west = (1, 0);
+        private static readonly (int x, int y) _south = (0, 1);
+        private static readonly (int x, int y) _northeast = (-1, -1);
+        private static readonly (int x, int y) _northwest = (1, -1);
+        private static readonly (int x, int y) _southeast = (-1, 1);
+        private static readonly (int x, int y) _southwest = (1, 1);
+
+        private static readonly short _maxDepth = 65;
+
         private static Dictionary<int, Dictionary<int, float>> _irrigationAccumulator = new Dictionary<int, Dictionary<int, float>>();
 
         public static Dictionary<short, string> GrowableTypeOrder = new Dictionary<short, string>();
 
+        internal static float[][] _soilMap;
+
+        private static bool logDebug = false;
+
         [Inject]
-        public void InjectDependencies(EntityComponentRegistry entityComponentRegistry, MapIndexService mapIndexService, WaterSimulator waterSimulator, WaterMap waterMap)
+        public void InjectDependencies(EntityComponentRegistry entityComponentRegistry, MapIndexService mapIndexService, WaterSimulator waterSimulator, WaterMap waterMap, SoilMoistureSimulator soilMoistureSimulator)
         {
             _entityComponentRegistry = entityComponentRegistry;
             _mapIndexService = mapIndexService;
             _waterSimulator = waterSimulator;
             _waterMap = waterMap;
+            _soilMoistureSimulator = soilMoistureSimulator;
         }
 
         public void Awake()
@@ -67,7 +83,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 .GetEnabled<RegisteredGrowable>()
                 .Where(x => !x._dryObject.IsDry);
 
-            if (growables == null || !growables.Any())
+            if (!growables.Any())
             {
                 return;
             }
@@ -79,9 +95,10 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            WaterAbsorptionPlugin.Log.LogInfo($"GrowableType: {growableType} Count: {growables.Where(x => x._growable.name == growableType).Count()}");
+            //WaterAbsorptionPlugin.Log.LogInfo($"GrowableType: {growableType} Count: {growables.Where(x => x._growable.name == growableType).Count()}");
 
-            WaterService.GenerateMap(_waterMap, _mapIndexService);
+            WaterService.GenerateWateredMap(_waterMap, _mapIndexService);
+            RegisteredIrrigator.GenerateIrrigationTowerLocations();
 
             foreach (var growable in growables.Where(x => x._growable.name == growableType))
             {
@@ -91,17 +108,12 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
         public static string GetGrowableType(IEnumerable<RegisteredGrowable> growables, short currentTick)
         {
-            string growableType;
-            if (!GrowableTypeOrder.Keys.Contains(currentTick))
+            if (GrowableTypeOrder.Keys.Contains(currentTick))
             {
-                growableType = GetNextGrowableType(growables, currentTick);
-            }
-            else
-            {
-                growableType = GrowableTypeOrder[currentTick];
+                return GrowableTypeOrder[currentTick];
             }
 
-            return growableType;
+            return GetNextGrowableType(growables, currentTick);
         }
 
         private static string GetNextGrowableType(IEnumerable<RegisteredGrowable> growables, short currentTick)
@@ -133,7 +145,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (!found)
             {
-                FindLocation(ref found, ref isIrrigationTower);
+                FindLocationAdvanced(ref found, ref isIrrigationTower);
             }
 
             if (!found)
@@ -142,86 +154,1028 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            if (!isIrrigationTower)
+            if (isIrrigationTower)
             {
-                UpdateWaterDepth();
+                ConsumeWaterFromIrrigator();
+                return;
             }
-            else
-            {
-                if (!_irrigationAccumulator.ContainsKey(_cachedY.Value))
-                {
-                    _irrigationAccumulator[_cachedY.Value] = new Dictionary<int, float>();
-                }
 
-                if (!_irrigationAccumulator[_cachedY.Value].ContainsKey(_cachedX.Value))
-                {
-                    _irrigationAccumulator[_cachedY.Value][_cachedX.Value] = 0;
-                }
-
-                _irrigationAccumulator[_cachedY.Value][_cachedX.Value] += 0.001f;
-
-                if (_irrigationAccumulator[_cachedY.Value][_cachedX.Value] < 1)
-                {
-                    return;
-                }
-
-                _irrigationAccumulator[_cachedY.Value][_cachedX.Value] = 0;
-
-                var irrigator = RegisteredIrrigator.GetIrrigators()
-                    .Where(x => x._blockObject.Coordinates.x == _cachedX && x._blockObject.Coordinates.y == _cachedY)
-                    .FirstOrDefault();
-
-                if (irrigator == null)
-                {
-                    WaterAbsorptionPlugin.Log.LogWarning($"NO IRRIGATION TOWER FOUND!!!");
-                    return;
-                }
-
-                // how to consumo the water???
-                var amount = irrigator._goodConsumingBuilding.Inventory.AmountInStock("Water");
-                if (amount == 0)
-                {
-                    WaterAbsorptionPlugin.Log.LogWarning($"NO WATER IN IRRIGATION TOWER!!!");
-                    return;
-                }
-
-                irrigator._goodConsumingBuilding.Inventory.Take(new GoodAmount("Water", 1));
-                if (irrigator._goodConsumingBuilding.Inventory.UnreservedAmountInStock(irrigator._goodConsumingBuilding._supply) <= 0)
-                {
-                    irrigator._goodConsumingBuilding._supplyLeft = 0;
-                }
-                WaterAbsorptionPlugin.Log.LogWarning($"Water consumed from irrigation tower");
-            }
+            UpdateWaterDepth();
         }
 
-        private void FindLocation(ref bool found, ref bool isIrrigationTower)
+        private void ConsumeWaterFromIrrigator()
         {
-            foreach (var item in _closestTiles)
+            var coordinates = RegisteredIrrigator._irrigationTowerEntranceLocations[new Vector2Int(_cachedX.Value, _cachedY.Value)];
+
+            if (!_irrigationAccumulator.ContainsKey(coordinates.y))
             {
+                _irrigationAccumulator[coordinates.y] = new Dictionary<int, float>();
+            }
+
+            if (!_irrigationAccumulator[coordinates.y].ContainsKey(coordinates.x))
+            {
+                _irrigationAccumulator[coordinates.y][coordinates.x] = 0;
+            }
+
+            _irrigationAccumulator[coordinates.y][coordinates.x] += 0.001f;
+
+            if (_irrigationAccumulator[coordinates.y][coordinates.x] < 1)
+            {
+                return;
+            }
+
+            _irrigationAccumulator[coordinates.y][coordinates.x] = 0;
+
+            var irrigator = RegisteredIrrigator.GetIrrigators()
+                .Where(x => x._blockObject.Coordinates.x == coordinates.x && x._blockObject.Coordinates.y == coordinates.y)
+                .FirstOrDefault();
+
+            if (irrigator == null)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning($"NO IRRIGATION TOWER FOUND!!!");
+                return;
+            }
+
+            var amount = irrigator._goodConsumingBuilding.Inventory.AmountInStock("Water");
+            if (amount == 0)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning($"NO WATER IN IRRIGATION TOWER!!!");
+                return;
+            }
+
+            irrigator._goodConsumingBuilding.Inventory.Take(new GoodAmount("Water", 1));
+            if (irrigator._goodConsumingBuilding.Inventory.UnreservedAmountInStock(irrigator._goodConsumingBuilding._supply) <= 0)
+            {
+                irrigator._goodConsumingBuilding._supplyLeft = 0;
+            }
+
+            //WaterAbsorptionPlugin.Log.LogWarning($"Water consumed from irrigation tower");
+        }
+
+        private void FindLocationAdvanced(ref bool found, ref bool isIrrigationTower)
+        {
+            Dictionary<short, float> moistureLevels = new Dictionary<short, float>();
+
+            for (short i = 0; i < 8; i++)
+            {
+                (int x, int y) item;
+                switch (i)
+                {
+                    case 0:
+                        item = _north;
+                        break;
+                    case 1:
+                        item = _east;
+                        break;
+                    case 2:
+                        item = _west;
+                        break;
+                    case 3:
+                        item = _south;
+                        break;
+                    case 4:
+                        item = _northeast;
+                        break;
+                    case 5:
+                        item = _northwest;
+                        break;
+                    case 6:
+                        item = _southeast;
+                        break;
+                    case 7:
+                        item = _southwest;
+                        break;
+                    default:
+                        throw new Exception("WHYYYYYYYYYYY");
+                }
+
                 var pointX = _blockObject.Coordinates.x + item.x;
                 var pointY = _blockObject.Coordinates.y + item.y;
+
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogInfo($"i: {i} iX: {item.x} iY: {item.y} cX: {_blockObject.Coordinates.x} xY: {_blockObject.Coordinates.y} pointX: {pointX} pointY: {pointY}");
+                }
 
                 if (pointX < 0 || pointY < 0 || pointX > _mapIndexService.MapSize.x || pointY > _mapIndexService.MapSize.y)
                 {
                     continue;
                 }
 
-                if (WaterService._wateredMap[pointY][pointX])
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
                 {
-                    found = true;
-                    _cachedX = pointX;
-                    _cachedY = pointY;
-                    break;
+                    return;
                 }
 
-                if (RegisteredIrrigator._irrigationTowerLocations.Any(x => x.x == pointX && x.y == pointY))
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+
+                if (logDebug)
                 {
-                    found = true;
-                    isIrrigationTower = true;
-                    _cachedX = pointX;
-                    _cachedY = pointY;
-                    break;
+                    WaterAbsorptionPlugin.Log.LogInfo($"index: {index}");
                 }
+
+                moistureLevels[i] = _soilMoistureSimulator.MoistureLevels[index];
+            }
+
+            var highest = moistureLevels.OrderByDescending(x => x.Value).First();
+
+            if (highest.Value == 0)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                return;
+            }
+
+            if (logDebug)
+            {
+                foreach (var item in moistureLevels)
+                {
+                    WaterAbsorptionPlugin.Log.LogInfo($"index: {item.Key} Value: {item.Value}");
+                }
+                WaterAbsorptionPlugin.Log.LogInfo($"Direction: {highest.Key} Value: {highest.Value}");
+            }
+
+            var direction = highest.Key;
+
+            (int x, int y) directionValues;
+            switch (direction)
+            {
+                case 0:
+                    directionValues = _north;
+                    break;
+                case 1:
+                    directionValues = _east;
+                    break;
+                case 2:
+                    directionValues = _west;
+                    break;
+                case 3:
+                    directionValues = _south;
+                    break;
+                case 4:
+                    directionValues = _northeast;
+                    break;
+                case 5:
+                    directionValues = _northwest;
+                    break;
+                case 6:
+                    directionValues = _southeast;
+                    break;
+                case 7:
+                    directionValues = _southwest;
+                    break;
+                default:
+                    throw new Exception("WHYYYYYYYYYYY 2");
+            }
+
+            if (directionValues.x == 0 && directionValues.y == 0)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning($"directionValues are ZEROs");
+            }
+
+            var newX = _blockObject.Coordinates.x + directionValues.x;
+            var newY = _blockObject.Coordinates.y + directionValues.y;
+
+            short depth = 0;
+
+            switch (direction)
+            {
+                case 0:
+                    FindN(ref found, ref isIrrigationTower, newX, newY, depth);
+                    break;
+                case 1:
+                    FindE(ref found, ref isIrrigationTower, newX, newY, depth);
+                    break;
+                case 2:
+                    FindW(ref found, ref isIrrigationTower, newX, newY, depth);
+                    break;
+                case 3:
+                    FindS(ref found, ref isIrrigationTower, newX, newY, depth);
+                    break;
+                case 4:
+                    FindNE(ref found, ref isIrrigationTower, newX, newY, depth);
+                    break;
+                case 5:
+                    FindNW(ref found, ref isIrrigationTower, newX, newY, depth);
+                    break;
+                case 6:
+                    FindSE(ref found, ref isIrrigationTower, newX, newY, depth);
+                    break;
+                case 7:
+                    FindSW(ref found, ref isIrrigationTower, newX, newY, depth);
+                    break;
+            }
+        }
+
+        private void FindN(ref bool found, ref bool isIrrigationTower, int x, int y, short depth)
+        {
+            depth++;
+
+            short direction = 0;
+            var highest = 0f;
+
+            var pointX = x + _north.x;
+            var pointY = y + _north.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                highest = _soilMoistureSimulator.MoistureLevels[index];
+            }
+
+            pointX = x + _northeast.x;
+            pointY = y + _northeast.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 1;
+                }    
+            }
+
+            pointX = x + _northwest.x;
+            pointY = y + _northwest.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 2;
+                }
+            }
+
+            if (highest == 0)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                return;
+            }
+
+            if (depth > _maxDepth)
+            {
+                LogAround(x, y, direction, highest, pointX, pointY);
+                return;
+            }
+
+            if (logDebug)
+            {
+                WaterAbsorptionPlugin.Log.LogInfo($"Direction: {direction} Value: {highest} Depth: {depth}");
+            }
+
+            switch (direction)
+            {
+                case 0:
+                    FindN(ref found, ref isIrrigationTower, x + _north.x, y + _north.y, depth);
+                    break;
+                case 1:
+                    FindNE(ref found, ref isIrrigationTower, x + _northeast.x, y + _northeast.y, depth);
+                    break;
+                case 2:
+                    FindNW(ref found, ref isIrrigationTower, x + _northwest.x, y + _northwest.y, depth);
+                    break;
+            }
+        }
+
+        private void FindE(ref bool found, ref bool isIrrigationTower, int x, int y, short depth)
+        {
+            depth++;
+            short direction = 0;
+            var highest = 0f;
+
+            var pointX = x + _east.x;
+            var pointY = y + _east.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                highest = _soilMoistureSimulator.MoistureLevels[index];
+            }
+
+            pointX = x + _northeast.x;
+            pointY = y + _northeast.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 1;
+                }
+            }
+
+            pointX = x + _southeast.x;
+            pointY = y + _southeast.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 2;
+                }
+            }
+
+            if (highest == 0)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                return;
+            }
+
+            if (depth > _maxDepth)
+            {
+                LogAround(x, y, direction, highest, pointX, pointY);
+                return;
+            }
+
+            if (logDebug)
+            {
+                WaterAbsorptionPlugin.Log.LogInfo($"Direction: {direction} Value: {highest} Depth: {depth}");
+            }
+
+            switch (direction)
+            {
+                case 0:
+                    FindE(ref found, ref isIrrigationTower, x + _east.x, y + _east.y, depth);
+                    break;
+                case 1:
+                    FindNE(ref found, ref isIrrigationTower, x + _northeast.x, y + _northeast.y, depth);
+                    break;
+                case 2:
+                    FindSE(ref found, ref isIrrigationTower, x + _southeast.x, y + _southeast.y, depth);
+                    break;
+            }
+        }
+
+        private void FindW(ref bool found, ref bool isIrrigationTower, int x, int y, short depth)
+        {
+            depth++;
+
+            short direction = 0;
+            var highest = 0f;
+
+            var pointX = x + _west.x;
+            var pointY = y + _west.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                highest = _soilMoistureSimulator.MoistureLevels[index];
+            }
+
+            pointX = x + _northwest.x;
+            pointY = y + _northwest.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 1;
+                }
+            }
+
+            pointX = x + _southwest.x;
+            pointY = y + _southwest.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 2;
+                }
+            }
+
+            if (highest == 0)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                return;
+            }
+
+            if (depth > _maxDepth)
+            {
+                LogAround(x, y, direction, highest, pointX, pointY);
+                return;
+            }
+
+            if (logDebug)
+            {
+                WaterAbsorptionPlugin.Log.LogInfo($"Direction: {direction} Value: {highest} Depth: {depth}");
+            }
+
+            switch (direction)
+            {
+                case 0:
+                    FindW(ref found, ref isIrrigationTower, x + _west.x, y + _west.y, depth);
+                    break;
+                case 1:
+                    FindNW(ref found, ref isIrrigationTower, x + _northwest.x, y + _northwest.y, depth);
+                    break;
+                case 2:
+                    FindSW(ref found, ref isIrrigationTower, x + _southwest.x, y + _southwest.y, depth);
+                    break;
+            }
+        }
+
+        private void FindS(ref bool found, ref bool isIrrigationTower, int x, int y, short depth)
+        {
+            depth++;
+
+            short direction = 0;
+            var highest = 0f;
+
+            var pointX = x + _south.x;
+            var pointY = y + _south.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                highest = _soilMoistureSimulator.MoistureLevels[index];
+            }
+
+            pointX = x + _southeast.x;
+            pointY = y + _southeast.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 1;
+                }
+            }
+
+            pointX = x + _southwest.x;
+            pointY = y + _southwest.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 2;
+                }
+            }
+
+            if (highest == 0)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                return;
+            }
+
+            if (depth > _maxDepth)
+            {
+                LogAround(x, y, direction, highest, pointX, pointY);
+                return;
+            }
+
+            if (logDebug)
+            {
+                WaterAbsorptionPlugin.Log.LogInfo($"Direction: {direction} Value: {highest} Depth: {depth}");
+            }
+
+            switch (direction)
+            {
+                case 0:
+                    FindS(ref found, ref isIrrigationTower, x + _south.x, y + _south.y, depth);
+                    break;
+                case 1:
+                    FindSE(ref found, ref isIrrigationTower, x + _southeast.x, y + _southeast.y, depth);
+                    break;
+                case 2:
+                    FindSW(ref found, ref isIrrigationTower, x + _southwest.x, y + _southwest.y, depth);
+                    break;
+            }
+        }
+
+        private void FindNE(ref bool found, ref bool isIrrigationTower, int x, int y, short depth)
+        {
+            depth++;
+
+            short direction = 0;
+            var highest = 0f;
+
+            var pointX = x + _northeast.x;
+            var pointY = y + _northeast.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                highest = _soilMoistureSimulator.MoistureLevels[index];
+            }
+
+            pointX = x + _north.x;
+            pointY = y + _north.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 1;
+                }
+            }
+
+            pointX = x + _east.x;
+            pointY = y + _east.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 2;
+                }
+            }
+
+            if (highest == 0)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                return;
+            }
+
+            if (depth > _maxDepth)
+            {
+                LogAround(x, y, direction, highest, pointX, pointY);
+                return;
+            }
+
+            if (logDebug)
+            {
+                WaterAbsorptionPlugin.Log.LogInfo($"Direction: {direction} Value: {highest} Depth: {depth}");
+            }
+
+            switch (direction)
+            {
+                case 0:
+                    FindNE(ref found, ref isIrrigationTower, x + _northeast.x, y + _northeast.y, depth);
+                    break;
+                case 1:
+                    FindN(ref found, ref isIrrigationTower, x + _north.x, y + _north.y, depth);
+                    break;
+                case 2:
+                    FindE(ref found, ref isIrrigationTower, x + _east.x, y + _east.y, depth);
+                    break;
+            }
+        }
+
+        private void FindNW(ref bool found, ref bool isIrrigationTower, int x, int y, short depth)
+        {
+            depth++;
+
+            short direction = 0;
+            var highest = 0f;
+
+            var pointX = x + _northwest.x;
+            var pointY = y + _northwest.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                highest = _soilMoistureSimulator.MoistureLevels[index];
+            }
+
+            pointX = x + _north.x;
+            pointY = y + _north.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 1;
+                }
+            }
+
+            pointX = x + _west.x;
+            pointY = y + _west.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 2;
+                }
+            }
+
+            if (highest == 0)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                return;
+            }
+
+            if (depth > _maxDepth)
+            {
+                LogAround(x, y, direction, highest, pointX, pointY);
+                return;
+            }
+
+            if (logDebug)
+            {
+                WaterAbsorptionPlugin.Log.LogInfo($"Direction: {direction} Value: {highest} Depth: {depth}");
+            }
+
+            switch (direction)
+            {
+                case 0:
+                    FindNW(ref found, ref isIrrigationTower, x + _northwest.x, y + _northwest.y, depth);
+                    break;
+                case 1:
+                    FindN(ref found, ref isIrrigationTower, x + _north.x, y + _north.y, depth);
+                    break;
+                case 2:
+                    FindW(ref found, ref isIrrigationTower, x + _west.x, y + _west.y, depth);
+                    break;
+            }
+        }
+
+        private void FindSE(ref bool found, ref bool isIrrigationTower, int x, int y, short depth)
+        {
+            depth++;
+
+            short direction = 0;
+            var highest = 0f;
+
+            var pointX = x + _southeast.x;
+            var pointY = y + _southeast.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                highest = _soilMoistureSimulator.MoistureLevels[index];
+            }
+
+            pointX = x + _south.x;
+            pointY = y + _south.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 1;
+                }
+            }
+
+            pointX = x + _east.x;
+            pointY = y + _east.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 2;
+                }
+            }
+
+            if (highest == 0)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                return;
+            }
+
+            if (depth > _maxDepth)
+            {
+                LogAround(x, y, direction, highest, pointX, pointY);
+                return;
+            }
+
+            if (logDebug)
+            {
+                WaterAbsorptionPlugin.Log.LogInfo($"Direction: {direction} Value: {highest} Depth: {depth}");
+            }
+
+            switch (direction)
+            {
+                case 0:
+                    FindSE(ref found, ref isIrrigationTower, x + _southeast.x, y + _southeast.y, depth);
+                    break;
+                case 1:
+                    FindS(ref found, ref isIrrigationTower, x + _south.x, y + _south.y, depth);
+                    break;
+                case 2:
+                    FindE(ref found, ref isIrrigationTower, x + _east.x, y + _east.y, depth);
+                    break;
+            }
+        }
+
+        private void FindSW(ref bool found, ref bool isIrrigationTower, int x, int y, short depth)
+        {
+            depth++;
+
+            short direction = 0;
+            var highest = 0f;
+
+            var pointX = x + _southwest.x;
+            var pointY = y + _southwest.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                highest = _soilMoistureSimulator.MoistureLevels[index];
+            }
+
+            pointX = x + _south.x;
+            pointY = y + _south.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 1;
+                }
+            }
+
+            pointX = x + _west.x;
+            pointY = y + _west.y;
+
+            if (pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y)
+            {
+                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
+                if (found)
+                {
+                    return;
+                }
+
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+
+                if (level > highest)
+                {
+                    highest = level;
+                    direction = 2;
+                }
+            }
+
+            if (highest == 0)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                return;
+            }
+
+            if (depth > _maxDepth)
+            {
+                LogAround(x, y, direction, highest, pointX, pointY);
+                return;
+            }
+
+            if (logDebug)
+            {
+                WaterAbsorptionPlugin.Log.LogInfo($"Direction: {direction} Value: {highest} Depth: {depth}");
+            }
+
+            switch (direction)
+            {
+                case 0:
+                    FindSW(ref found, ref isIrrigationTower, x + _southwest.x, y + _southwest.y, depth);
+                    break;
+                case 1:
+                    FindS(ref found, ref isIrrigationTower, x + _south.x, y + _south.y, depth);
+                    break;
+                case 2:
+                    FindW(ref found, ref isIrrigationTower, x + _west.x, y + _west.y, depth);
+                    break;
+            }
+        }
+
+        private void CheckIfWaterOrIrrigator(ref bool found, ref bool isIrrigationTower, int x, int y)
+        {
+            if (WaterService._wateredMap[y][x])
+            {
+                found = true;
+                _cachedX = x;
+                _cachedY = y;
+                return;
+            }
+
+            if (RegisteredIrrigator._irrigationTowerLocations.Any(item => item.x == x && item.y == y))
+            {
+                found = true;
+                isIrrigationTower = true;
+                _cachedX = x;
+                _cachedY = y;
+                return;
+            }
+        }
+
+        private void LogAround(int x, int y, short direction, float highest, int pointX, int pointY)
+        {
+            WaterAbsorptionPlugin.Log.LogWarning($"MAX DEPTH SEARCH RANGE REACHED!!! OriX: {_blockObject.Coordinates.x} OriY: {_blockObject.Coordinates.y} Dir: {direction} Highest: {highest} x: {x} y: {y}");
+
+            if (logDebug)
+            {
+                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _north.x, pointY + _north.y));
+                var level = _soilMoistureSimulator.MoistureLevels[index];
+                WaterAbsorptionPlugin.Log.LogInfo($"_north: {level}");
+                index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _east.x, pointY + _east.y));
+                level = _soilMoistureSimulator.MoistureLevels[index];
+                WaterAbsorptionPlugin.Log.LogInfo($"_east: {level}");
+                index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _west.x, pointY + _west.y));
+                level = _soilMoistureSimulator.MoistureLevels[index];
+                WaterAbsorptionPlugin.Log.LogInfo($"_west: {level}");
+                index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _south.x, pointY + _south.y));
+                level = _soilMoistureSimulator.MoistureLevels[index];
+                WaterAbsorptionPlugin.Log.LogInfo($"_south: {level}");
+                index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _northeast.x, pointY + _northeast.y));
+                level = _soilMoistureSimulator.MoistureLevels[index];
+                WaterAbsorptionPlugin.Log.LogInfo($"_northeast: {level}");
+                index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _northwest.x, pointY + _northwest.y));
+                level = _soilMoistureSimulator.MoistureLevels[index];
+                WaterAbsorptionPlugin.Log.LogInfo($"_northwest: {level}");
+                index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _southeast.x, pointY + _southeast.y));
+                level = _soilMoistureSimulator.MoistureLevels[index];
+                WaterAbsorptionPlugin.Log.LogInfo($"_southeast: {level}");
+                index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _southwest.x, pointY + _southwest.y));
+                level = _soilMoistureSimulator.MoistureLevels[index];
+                WaterAbsorptionPlugin.Log.LogInfo($"_southwest: {level}");
             }
         }
 

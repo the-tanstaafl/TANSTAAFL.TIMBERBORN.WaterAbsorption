@@ -19,6 +19,7 @@ using Timberborn.WaterSystem;
 using Timberborn.Goods;
 using UnityEngine;
 using Timberborn.IrrigationSystem;
+using Timberborn.Common;
 
 namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 {
@@ -31,8 +32,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         private static EntityComponentRegistry _entityComponentRegistry;
 
         internal static List<(int x, int y)> _irrigationTowerLocations = new List<(int x, int y)>();
-
-        public static Dictionary<short, string> GrowableTypeOrder = new Dictionary<short, string>();
+        internal static Dictionary<Vector2Int, Vector2Int> _irrigationTowerEntranceLocations = new Dictionary<Vector2Int, Vector2Int>();
 
         [Inject]
         public void InjectDependencies(EntityComponentRegistry entityComponentRegistry, MapIndexService mapIndexService, WaterSimulator waterSimulator, WaterMap waterMap)
@@ -65,7 +65,11 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             foreach (var irrigator in irigators)
             {
-                _irrigationTowerLocations.Add((irrigator._blockObject.Coordinates.x, irrigator._blockObject.Coordinates.y));
+                foreach (var coordinate in irrigator._blockObject.PositionedBlocks.GetOccupiedCoordinates().XY().Distinct())
+                {
+                    _irrigationTowerLocations.Add((coordinate.x, coordinate.y));
+                    _irrigationTowerEntranceLocations[new Vector2Int(coordinate.x, coordinate.y)] = irrigator._blockObject.Coordinates.XY();
+                }
             }
         }
     }

@@ -31,7 +31,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.TickTracker
 
             CurrentTick++;
 
-            WaterAbsorptionPlugin.Log.LogInfo($"Tick => {CurrentTick}");
+            //WaterAbsorptionPlugin.Log.LogInfo($"Tick => {CurrentTick}");
 
             RegisteredGrowable.HandleGrowables(CurrentTick);
         }
