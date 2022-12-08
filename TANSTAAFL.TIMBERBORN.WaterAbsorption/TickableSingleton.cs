@@ -20,11 +20,9 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.TickTracker
     {
         public short CurrentTick { get; private set; } = -1;
 
-        public readonly short MaxTicks = 13;
-
         public void Tick()
         {
-            if (CurrentTick == MaxTicks - 1)
+            if (CurrentTick == WaterAbsorptionPlugin.Config.MaxTicks - 1)
             {
                 CurrentTick = -1;
             }

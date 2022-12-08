@@ -9,6 +9,11 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
     {
         public string ConfigFileName => "WaterAbsorption";
 
-        public float PlantConsumtion;
+        public float NormalEvaporationSpeed = 0.25f;
+        public float FastEvaporationSpeed = 0.25f;
+        public float IrrigatorTickIncrement = 0.001f;
+        public float GrowableTickWaterDepth = -0.000005f;
+        public short MaxTicks = 13;
+        public short MaxSearchDepth = 25;
     }
 }

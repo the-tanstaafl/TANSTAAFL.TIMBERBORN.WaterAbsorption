@@ -50,8 +50,6 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         private static readonly (int x, int y) _southeast = (-1, 1);
         private static readonly (int x, int y) _southwest = (1, 1);
 
-        private static readonly short _maxDepth = 65;
-
         private static Dictionary<int, Dictionary<int, float>> _irrigationAccumulator = new Dictionary<int, Dictionary<int, float>>();
 
         public static Dictionary<short, string> GrowableTypeOrder = new Dictionary<short, string>();
@@ -177,7 +175,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 _irrigationAccumulator[coordinates.y][coordinates.x] = 0;
             }
 
-            _irrigationAccumulator[coordinates.y][coordinates.x] += 0.001f;
+            _irrigationAccumulator[coordinates.y][coordinates.x] += WaterAbsorptionPlugin.Config.IrrigatorTickIncrement;
 
             if (_irrigationAccumulator[coordinates.y][coordinates.x] < 1)
             {
@@ -437,7 +435,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            if (depth > _maxDepth)
+            if (depth > WaterAbsorptionPlugin.Config.MaxSearchDepth)
             {
                 LogAround(x, y, direction, highest, pointX, pointY);
                 return;
@@ -531,7 +529,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            if (depth > _maxDepth)
+            if (depth > WaterAbsorptionPlugin.Config.MaxSearchDepth)
             {
                 LogAround(x, y, direction, highest, pointX, pointY);
                 return;
@@ -626,7 +624,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            if (depth > _maxDepth)
+            if (depth > WaterAbsorptionPlugin.Config.MaxSearchDepth)
             {
                 LogAround(x, y, direction, highest, pointX, pointY);
                 return;
@@ -721,7 +719,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            if (depth > _maxDepth)
+            if (depth > WaterAbsorptionPlugin.Config.MaxSearchDepth)
             {
                 LogAround(x, y, direction, highest, pointX, pointY);
                 return;
@@ -816,7 +814,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            if (depth > _maxDepth)
+            if (depth > WaterAbsorptionPlugin.Config.MaxSearchDepth)
             {
                 LogAround(x, y, direction, highest, pointX, pointY);
                 return;
@@ -911,7 +909,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            if (depth > _maxDepth)
+            if (depth > WaterAbsorptionPlugin.Config.MaxSearchDepth)
             {
                 LogAround(x, y, direction, highest, pointX, pointY);
                 return;
@@ -1006,7 +1004,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            if (depth > _maxDepth)
+            if (depth > WaterAbsorptionPlugin.Config.MaxSearchDepth)
             {
                 LogAround(x, y, direction, highest, pointX, pointY);
                 return;
@@ -1101,7 +1099,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            if (depth > _maxDepth)
+            if (depth > WaterAbsorptionPlugin.Config.MaxSearchDepth)
             {
                 LogAround(x, y, direction, highest, pointX, pointY);
                 return;
@@ -1212,7 +1210,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            _waterSimulator.UpdateWaterDepth(new Vector2Int(_cachedX.Value, _cachedY.Value), -0.000005f);
+            _waterSimulator.UpdateWaterDepth(new Vector2Int(_cachedX.Value, _cachedY.Value), WaterAbsorptionPlugin.Config.GrowableTickWaterDepth);
         }
     }
 }

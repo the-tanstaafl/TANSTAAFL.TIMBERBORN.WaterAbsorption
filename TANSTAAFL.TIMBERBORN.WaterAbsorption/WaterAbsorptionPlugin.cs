@@ -49,18 +49,8 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         public static void Postfix(WaterSimulator __instance)
         {
             //__instance._waterSimulationSettings._fastEvaporationDepthThreshold
-            __instance._waterSimulationSettings._normalEvaporationSpeed *= 0.25f;
-            __instance._waterSimulationSettings._fastEvaporationSpeed *= 0.25f;
-        }
-
-        [HarmonyPatch(typeof(SoilMoistureSimulator), nameof(SoilMoistureSimulator.Load))]
-        public static void Postfix(SoilMoistureSimulator __instance)
-        {
-            StreamWriter sw = new StreamWriter("D:\\Temp\\Test.txt");
-
-            sw.WriteLine(string.Join(";", __instance.MoistureLevels));
-
-            sw.Close();
+            __instance._waterSimulationSettings._normalEvaporationSpeed *= Config.NormalEvaporationSpeed;
+            __instance._waterSimulationSettings._fastEvaporationSpeed *= Config.FastEvaporationSpeed;
         }
     }
 }
