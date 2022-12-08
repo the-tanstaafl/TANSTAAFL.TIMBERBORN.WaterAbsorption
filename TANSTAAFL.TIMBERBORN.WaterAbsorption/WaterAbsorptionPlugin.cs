@@ -49,8 +49,8 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         public static void Postfix(WaterSimulator __instance)
         {
             //__instance._waterSimulationSettings._fastEvaporationDepthThreshold
-            __instance._waterSimulationSettings._normalEvaporationSpeed *= Config.NormalEvaporationSpeed;
-            __instance._waterSimulationSettings._fastEvaporationSpeed *= Config.FastEvaporationSpeed;
+            __instance._waterSimulationSettings._normalEvaporationSpeed *= Config.NormalEvaporationSpeedMultiplier;
+            __instance._waterSimulationSettings._fastEvaporationSpeed *= Config.FastEvaporationSpeedMultiplier;
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿{
   "name": "WaterAbsorption",
   "author": "TANSTAAFL",
-  "version_number": "1.0.3",
+  "version_number": "1.0.4",
   "website_url": "https://github.com/the-tanstaafl/TANSTAAFL.TIMBERBORN.WaterAbsorption",
   "description": "Adds water absorption by growables.",
   "dependencies": [
