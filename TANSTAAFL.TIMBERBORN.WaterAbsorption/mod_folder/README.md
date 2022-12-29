@@ -7,9 +7,9 @@ WaterAbsorption is a Timberborn mod that alters the evaporation rate of water an
 There are six values to alter, listed below:
 
 * NormalEvaporationSpeedMultiplier: Number by wich the normal water evaporation is multiplied (Default 0.25)
-* FastEvaporationSpeedMultiplier: Number by wich the fast water evaporation (when the level is below 0.2) is multiplied (Default 0.25)
+* FastEvaporationSpeedMultiplier: Number by wich the fast water evaporation (when the level is below 0.2) is multiplied (Default 0.5)
 * IrrigatorTickIncrement: 1 over how many times Growables have to tick for 1 water be consumed in the Irrigator (Default 0.001)
-* GrowableTickWaterDepth: By how much the closest water tile of a Growable is reduced when it ticks (Default -0.000005 or -5E-06)
+* GrowableTickWaterDepth: By how much the closest water tile of a Growable is reduced when it ticks (Default -0.00001 or -1E-05)
 * MaxTicks: Every Growable is processed in a game Tick. MaxTicks has to be higher than the number of Growables used (Default 13)
 * MaxSearchDepth: How far a Growable will search for water to absorb. Relevant if buildings that moisture further like the Big Irrigation Tower from the mod Water Extention are used (Default 25)
 
@@ -22,9 +22,15 @@ If the config is not showing, try to launch the game and start up a save, that s
 If there's a warning message in the log about a missing JSON property on game launch, delete the config file and restart the game to recreate it.
 
 # Contributions
-PRs are always welcome on the github page!
+PRs are always welcome on the  Github page!
 
 # Changelog
+
+## v1.0.5 - 29.12.2022
+- Fixes dead growables absorbing water
+- Increases default GrowableTickWaterDepth to -0.00001
+- Increases default FastEvaporationSpeedMultiplier to 0.5
+- Migration to mod.io
 
 ## v1.0.4 - 8.12.2022
 - Alters config options

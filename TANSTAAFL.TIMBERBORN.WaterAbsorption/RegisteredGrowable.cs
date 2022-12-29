@@ -22,6 +22,7 @@ using UnityEngine;
 using Timberborn.IrrigationSystem;
 using System.IO;
 using Timberborn.Common;
+using Timberborn.NaturalResourcesLifeCycle;
 
 namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 {
@@ -30,6 +31,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         internal Growable _growable;
         private DryObject _dryObject;
         private BlockObject _blockObject;
+        private LivingNaturalResource _livingNaturalResource;
         private int? _cachedX;
         private int? _cachedY;
         private short _cacheAge = 0;
@@ -54,8 +56,6 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
         public static Dictionary<short, string> GrowableTypeOrder = new Dictionary<short, string>();
 
-        internal static float[][] _soilMap;
-
         private static bool logDebug = false;
 
         [Inject]
@@ -73,13 +73,14 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
             _growable = GetComponent<Growable>();
             _dryObject = GetComponent<DryObject>();
             _blockObject = GetComponent<BlockObject>();
+            _livingNaturalResource = GetComponent<LivingNaturalResource>();
         }
 
         internal static void HandleGrowables(short currentTick)
         {
             var growables = _entityComponentRegistry
                 .GetEnabled<RegisteredGrowable>()
-                .Where(x => !x._dryObject.IsDry);
+                .Where(x => !x._livingNaturalResource.IsDead && !x._dryObject.IsDry);
 
             if (!growables.Any())
             {
@@ -148,7 +149,11 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (!found)
             {
-                WaterAbsorptionPlugin.Log.LogWarning($"NO WATER FOUND!!!");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning($"NO WATER FOUND!!!");
+                }
+
                 return;
             }
 
@@ -190,14 +195,22 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (irrigator == null)
             {
-                WaterAbsorptionPlugin.Log.LogWarning($"NO IRRIGATION TOWER FOUND!!!");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning($"NO IRRIGATION TOWER FOUND!!!");
+                }
+
                 return;
             }
 
             var amount = irrigator._goodConsumingBuilding.Inventory.AmountInStock("Water");
             if (amount == 0)
             {
-                WaterAbsorptionPlugin.Log.LogWarning($"NO WATER IN IRRIGATION TOWER!!!");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning($"NO WATER IN IRRIGATION TOWER!!!");
+                }
+
                 return;
             }
 
@@ -206,8 +219,6 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
             {
                 irrigator._goodConsumingBuilding._supplyLeft = 0;
             }
-
-            //WaterAbsorptionPlugin.Log.LogWarning($"Water consumed from irrigation tower");
         }
 
         private void FindLocationAdvanced(ref bool found, ref bool isIrrigationTower)
@@ -280,7 +291,11 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (highest.Value == 0)
             {
-                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                }
+
                 return;
             }
 
@@ -328,7 +343,10 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (directionValues.x == 0 && directionValues.y == 0)
             {
-                WaterAbsorptionPlugin.Log.LogWarning($"directionValues are ZEROs");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning($"directionValues are ZEROs");
+                }
             }
 
             var newX = _blockObject.Coordinates.x + directionValues.x;
@@ -431,7 +449,11 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (highest == 0)
             {
-                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                }
+
                 return;
             }
 
@@ -525,7 +547,11 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (highest == 0)
             {
-                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                }
+
                 return;
             }
 
@@ -620,7 +646,10 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (highest == 0)
             {
-                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                }
                 return;
             }
 
@@ -715,7 +744,10 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (highest == 0)
             {
-                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                }
                 return;
             }
 
@@ -810,7 +842,10 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (highest == 0)
             {
-                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                }
                 return;
             }
 
@@ -905,7 +940,10 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (highest == 0)
             {
-                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                }
                 return;
             }
 
@@ -1000,7 +1038,10 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (highest == 0)
             {
-                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                }
                 return;
             }
 
@@ -1095,7 +1136,10 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             if (highest == 0)
             {
-                WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
+                }
                 return;
             }
 
@@ -1146,10 +1190,10 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
         private void LogAround(int x, int y, short direction, float highest, int pointX, int pointY)
         {
-            WaterAbsorptionPlugin.Log.LogWarning($"MAX DEPTH SEARCH RANGE REACHED!!! OriX: {_blockObject.Coordinates.x} OriY: {_blockObject.Coordinates.y} Dir: {direction} Highest: {highest} x: {x} y: {y}");
-
             if (logDebug)
             {
+                WaterAbsorptionPlugin.Log.LogWarning($"MAX DEPTH SEARCH RANGE REACHED!!! OriX: {_blockObject.Coordinates.x} OriY: {_blockObject.Coordinates.y} Dir: {direction} Highest: {highest} x: {x} y: {y}");
+
                 var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _north.x, pointY + _north.y));
                 var level = _soilMoistureSimulator.MoistureLevels[index];
                 WaterAbsorptionPlugin.Log.LogInfo($"_north: {level}");
@@ -1206,7 +1250,11 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         {
             if (!_cachedX.HasValue || !_cachedY.HasValue)
             {
-                WaterAbsorptionPlugin.Log.LogWarning($"_cachedX: {(_cachedX.HasValue ? _cachedX.Value.ToString() : "NULL")} _cachedY: {(_cachedY.HasValue ? _cachedY.Value.ToString() : "NULL")}");
+                if (logDebug)
+                {
+                    WaterAbsorptionPlugin.Log.LogWarning($"_cachedX: {(_cachedX.HasValue ? _cachedX.Value.ToString() : "NULL")} _cachedY: {(_cachedY.HasValue ? _cachedY.Value.ToString() : "NULL")}");
+                }
+                
                 return;
             }
 
