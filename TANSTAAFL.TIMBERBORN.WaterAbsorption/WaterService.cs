@@ -21,11 +21,11 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
             var mapSize = _mapIndexService.MapSize;
             var waterDepths = _waterMap.WaterDepths;
 
-            _wateredMap = new bool[mapSize.x + 1][];
+            _wateredMap = new bool[mapSize.y + 1][];
 
             for (var i = 0; i < _wateredMap.Length; i++)
             {
-                _wateredMap[i] = new bool[mapSize.y + 1];
+                _wateredMap[i] = new bool[mapSize.x + 1];
             }
 
             for (int i = 0; i < waterDepths.Length; i++)
