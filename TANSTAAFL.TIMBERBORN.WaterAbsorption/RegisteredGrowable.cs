@@ -1225,7 +1225,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         {
             if (_cachedX.HasValue && _cachedY.HasValue)
             {
-                if (WaterService._wateredMap[_cachedX.Value][_cachedY.Value])
+                if (WaterService._wateredMap[_cachedY.Value][_cachedX.Value])
                 {
                     found = true;
                     _cacheAge++;
