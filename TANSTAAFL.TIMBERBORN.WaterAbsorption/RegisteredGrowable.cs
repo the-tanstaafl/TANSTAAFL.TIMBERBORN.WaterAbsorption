@@ -60,16 +60,14 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 _cachedY = null;
             }
 
-            bool found = false;
-            bool isIrrigationTower = false;
-            CheckIfCached(ref found, ref isIrrigationTower);
+            (bool foundWater, bool waterIsIrrigationTower) = CheckIfCached();
 
-            if (!found)
+            if (!foundWater)
             {
-                new WaterSearch.WaterSearcher(this, _mapIndexService, _soilMoistureSimulator).FindLocationAdvanced(ref found, ref isIrrigationTower);
+                (foundWater, waterIsIrrigationTower) = new WaterSearch.WaterSearcher(this, _mapIndexService, _soilMoistureSimulator).FindLocationAdvanced();
             }
 
-            if (!found)
+            if (!foundWater)
             {
                 if (logDebug)
                 {
@@ -79,7 +77,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            if (isIrrigationTower)
+            if (waterIsIrrigationTower)
             {
                 ConsumeWaterFromIrrigator();
                 return;
@@ -143,29 +141,28 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
             }
         }
         
-        private void CheckIfCached(ref bool found, ref bool isIrrigationTower)
+        private (bool foundWater, bool waterIsIrrigationTower) CheckIfCached()
         {
             if (_cachedX.HasValue && _cachedY.HasValue)
             {
                 if (WaterService._wateredMap[_cachedY.Value][_cachedX.Value])
                 {
-                    found = true;
                     _cacheAge++;
-                    return;
+                    return (true, false);
                 }
                 
                 if (RegisteredIrrigator._irrigationTowerLocations.Any(x => x.x == _cachedX.Value && x.y == _cachedY.Value))
                 {
-                    found = true;
-                    isIrrigationTower = true;
                     _cacheAge++;
-                    return;
+                    return (true, true);
                 }
 
                 _cacheAge = 0;
                 _cachedX = null;
                 _cachedY = null;
             }
+
+            return (false, false);
         }
 
         private void UpdateWaterDepth()

@@ -6,103 +6,49 @@ using Timberborn.BlockSystem;
 using Timberborn.MapIndexSystem;
 using Timberborn.SoilMoistureSystem;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.WaterSearch
 {
     internal class WaterSearcher
     {
         private RegisteredGrowable _registeredGrowable;
-        private BlockObject _blockObject;
         private static MapIndexService _mapIndexService;
         private static SoilMoistureSimulator _soilMoistureSimulator;
-
-        private static bool logDebug = false;
 
         internal WaterSearcher(RegisteredGrowable registeredGrowable, MapIndexService mapIndexService, SoilMoistureSimulator soilMoistureSimulator)
         {
             _registeredGrowable = registeredGrowable;
-            _blockObject = registeredGrowable._blockObject;
             _mapIndexService = mapIndexService;
             _soilMoistureSimulator = soilMoistureSimulator;
         }
 
-        internal void FindLocationAdvanced(ref bool found, ref bool isIrrigationTower)
+        internal (bool foundWater, bool waterIsIrrigationTower) FindLocationAdvanced()
         {
-            Dictionary<Direction.CardinalDirection, float> moistureLevels = new Dictionary<Direction.CardinalDirection, float>();
+            var moistureLevels = new Dictionary<Direction.CardinalDirection, float>();
 
             for (short i = 0; i < 8; i++)
             {
-                Direction.CardinalDirection cardinalDirection = (Direction.CardinalDirection)i;
-                (int x, int y) item = Direction.CardinalDirectionXY[cardinalDirection];
+                var cardinalDirection = (Direction.CardinalDirection)i;
+                var (x, y) = GetNeighborCoordinates(cardinalDirection);
 
-                var pointX = _blockObject.Coordinates.x + item.x;
-                var pointY = _blockObject.Coordinates.y + item.y;
-                if (logDebug)
-                {
-                    WaterAbsorptionPlugin.Log.LogInfo($"i: {i} iX: {item.x} iY: {item.y} cX: {_blockObject.Coordinates.x} xY: {_blockObject.Coordinates.y} pointX: {pointX} pointY: {pointY}");
-                }
+                if (!IsInsideMap(x, y)) continue;
 
-                if (pointX < 0 || pointY < 0 || pointX > _mapIndexService.MapSize.x || pointY > _mapIndexService.MapSize.y)
-                {
-                    continue;
-                }
+                var (foundWater, waterIsIrrigationTower) = CheckIfWaterOrIrrigationTower(x, y);
+                if (foundWater) return (true, waterIsIrrigationTower);
 
-                CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
-                if (found)
-                {
-                    return;
-                }
-
-                var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
-
-                if (logDebug)
-                {
-                    WaterAbsorptionPlugin.Log.LogInfo($"index: {index}");
-                }
-
-                moistureLevels[cardinalDirection] = _soilMoistureSimulator.MoistureLevels[index];
+                var moistureLevel = GetMoistureLevel(x, y);
+                moistureLevels[cardinalDirection] = moistureLevel;
             }
 
-            var highest = moistureLevels.OrderByDescending(x => x.Value).First();
+            var highestMoistureDirection = GetHighestMoistureDirection(moistureLevels);
+            if (highestMoistureDirection == null) return (false, false);
 
-            if (highest.Value == 0)
-            {
-                if (logDebug)
-                {
-                    WaterAbsorptionPlugin.Log.LogWarning("IT IS DRY!!!");
-                }
-
-                return;
-            }
-
-            if (logDebug)
-            {
-                foreach (var item in moistureLevels)
-                {
-                    WaterAbsorptionPlugin.Log.LogInfo($"index: {item.Key} Value: {item.Value}");
-                }
-                WaterAbsorptionPlugin.Log.LogInfo($"Direction: {highest.Key} Value: {highest.Value}");
-            }
-
-            var direction = highest.Key;
-
-            (int x, int y) directionValues = Direction.CardinalDirectionXY[direction];
-
-            if (directionValues.x == 0 && directionValues.y == 0)
-            {
-                if (logDebug)
-                {
-                    WaterAbsorptionPlugin.Log.LogWarning($"directionValues are ZEROs");
-                }
-            }
-
-            var newX = _blockObject.Coordinates.x + directionValues.x;
-            var newY = _blockObject.Coordinates.y + directionValues.y;
-
-            Find(ref found, ref isIrrigationTower, newX, newY, 0, direction);
+            var (newX, newY) = GetNeighborCoordinates(highestMoistureDirection.Value);
+            return Find(newX, newY, 0, highestMoistureDirection.Value);
         }
 
-        private void Find(ref bool found, ref bool isIrrigationTower, int x, int y, short depth, Direction.CardinalDirection cardinalDirection)
+        private (bool foundWater, bool waterIsIrrigationTower) Find(int x, int y, short depth, Direction.CardinalDirection cardinalDirection)
         {
             depth++;
 
@@ -114,42 +60,48 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.WaterSearch
                 var pointX = x + xy.x;
                 var pointY = y + xy.y;
 
-                (highest, cardinalDirection) = ProccessCardinalDirection(pointX, pointY, ref found, ref isIrrigationTower, highest, cardinalDirection, point);
+                bool foundWater = false;
+                bool waterIsIrrigationTower = false;
+                (foundWater, waterIsIrrigationTower, highest, cardinalDirection) = ProccessCardinalDirection(pointX, pointY, highest, cardinalDirection, point);
+                if (foundWater)
+                {
+                    return (foundWater, waterIsIrrigationTower);
+                }
             }
 
             if (ShouldStopSearch(highest, depth))
             {
-                return;
+                return (false, false);
             }
 
             var newXY = Direction.CardinalDirectionXY[cardinalDirection];
-            Find(ref found, ref isIrrigationTower, x + newXY.x, y + newXY.y, depth, cardinalDirection);
+            return Find(x + newXY.x, y + newXY.y, depth, cardinalDirection);
         }
 
-        private (float highest, Direction.CardinalDirection direction) ProccessCardinalDirection(int pointX, int pointY, ref bool found, ref bool isIrrigationTower, float highest, Direction.CardinalDirection oldDirection, Direction.CardinalDirection newDirection)
+        private (bool foundWater, bool waterIsIrrigationTower, float highest, Direction.CardinalDirection direction) ProccessCardinalDirection(int pointX, int pointY, float highest, Direction.CardinalDirection oldDirection, Direction.CardinalDirection newDirection)
         {
             if (!IsInsideMap(pointX, pointY))
             {
-                return (highest, oldDirection);
+                return (false, false, highest, oldDirection);
             }
 
-            CheckIfWaterOrIrrigator(ref found, ref isIrrigationTower, pointX, pointY);
-            if (found)
+            var (foundWater, waterIsIrrigationTower) = CheckIfWaterOrIrrigationTower(pointX, pointY);
+            if (foundWater)
             {
-                return (highest, oldDirection);
+                return (foundWater, waterIsIrrigationTower, highest, oldDirection);
             }
 
-            var level = GetWaterLevel(pointX, pointY);
+            var level = GetMoistureLevel(pointX, pointY);
 
             if (level > highest)
             {
-                return (level, newDirection);
+                return (false, false, level, newDirection);
             }
 
-            return (highest, oldDirection);
+            return (false, false, highest, oldDirection);
         }
 
-        private float GetWaterLevel(int pointX, int pointY)
+        private float GetMoistureLevel(int pointX, int pointY)
         {
             var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX, pointY));
             return _soilMoistureSimulator.MoistureLevels[index];
@@ -160,62 +112,79 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.WaterSearch
             return pointX >= 0 && pointY >= 0 && pointX <= _mapIndexService.MapSize.x && pointY <= _mapIndexService.MapSize.y;
         }
 
+        private Direction.CardinalDirection? GetHighestMoistureDirection(Dictionary<Direction.CardinalDirection, float> moistureLevels)
+        {
+            var highestMoistureLevel = moistureLevels.OrderByDescending(x => x.Value).First();
+
+            if (highestMoistureLevel.Value == 0)
+            {
+                return null;
+            }
+
+            return highestMoistureLevel.Key;
+        }
+
+        private (int x, int y) GetNeighborCoordinates(Direction.CardinalDirection direction)
+        {
+            var neighborXY = Direction.CardinalDirectionXY[direction];
+            return (_registeredGrowable._blockObject.Coordinates.x + neighborXY.x, _registeredGrowable._blockObject.Coordinates.y + neighborXY.y);
+        }
+
         private bool ShouldStopSearch(float highest, short depth)
         {
             return highest == 0 || depth > WaterAbsorptionPlugin.Config.MaxSearchDepth;
         }
 
-        private void CheckIfWaterOrIrrigator(ref bool found, ref bool isIrrigationTower, int x, int y)
+        private (bool foundWater, bool waterIsIrrigationTower) CheckIfWaterOrIrrigationTower(int x, int y)
         {
             if (WaterService._wateredMap[y][x])
             {
-                found = true;
                 _registeredGrowable._cachedX = x;
                 _registeredGrowable._cachedY = y;
-                return;
+                return (true, false);
             }
 
             if (RegisteredIrrigator._irrigationTowerLocations.Any(item => item.x == x && item.y == y))
             {
-                found = true;
-                isIrrigationTower = true;
                 _registeredGrowable._cachedX = x;
                 _registeredGrowable._cachedY = y;
-                return;
+                return (true, true);
             }
+
+            return (false, false);
         }
 
         private void LogAround(int x, int y, short direction, float highest, int pointX, int pointY)
         {
-            if (logDebug)
-            {
-                WaterAbsorptionPlugin.Log.LogWarning($"MAX DEPTH SEARCH RANGE REACHED!!! OriX: {_blockObject.Coordinates.x} OriY: {_blockObject.Coordinates.y} Dir: {direction} Highest: {highest} x: {x} y: {y}");
+            //if (logDebug)
+            //{
+            //    WaterAbsorptionPlugin.Log.LogWarning($"MAX DEPTH SEARCH RANGE REACHED!!! OriX: {_blockObject.Coordinates.x} OriY: {_blockObject.Coordinates.y} Dir: {direction} Highest: {highest} x: {x} y: {y}");
 
-                //var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _north.x, pointY + _north.y));
-                //var level = _soilMoistureSimulator.MoistureLevels[index];
-                //WaterAbsorptionPlugin.Log.LogInfo($"_north: {level}");
-                //index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _east.x, pointY + _east.y));
-                //level = _soilMoistureSimulator.MoistureLevels[index];
-                //WaterAbsorptionPlugin.Log.LogInfo($"_east: {level}");
-                //index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _west.x, pointY + _west.y));
-                //level = _soilMoistureSimulator.MoistureLevels[index];
-                //WaterAbsorptionPlugin.Log.LogInfo($"_west: {level}");
-                //index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _south.x, pointY + _south.y));
-                //level = _soilMoistureSimulator.MoistureLevels[index];
-                //WaterAbsorptionPlugin.Log.LogInfo($"_south: {level}");
-                //index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _northeast.x, pointY + _northeast.y));
-                //level = _soilMoistureSimulator.MoistureLevels[index];
-                //WaterAbsorptionPlugin.Log.LogInfo($"_northeast: {level}");
-                //index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _northwest.x, pointY + _northwest.y));
-                //level = _soilMoistureSimulator.MoistureLevels[index];
-                //WaterAbsorptionPlugin.Log.LogInfo($"_northwest: {level}");
-                //index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _southeast.x, pointY + _southeast.y));
-                //level = _soilMoistureSimulator.MoistureLevels[index];
-                //WaterAbsorptionPlugin.Log.LogInfo($"_southeast: {level}");
-                //index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _southwest.x, pointY + _southwest.y));
-                //level = _soilMoistureSimulator.MoistureLevels[index];
-                //WaterAbsorptionPlugin.Log.LogInfo($"_southwest: {level}");
-            }
+            //    var index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _north.x, pointY + _north.y));
+            //    var level = _soilMoistureSimulator.MoistureLevels[index];
+            //    WaterAbsorptionPlugin.Log.LogInfo($"_north: {level}");
+            //    index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _east.x, pointY + _east.y));
+            //    level = _soilMoistureSimulator.MoistureLevels[index];
+            //    WaterAbsorptionPlugin.Log.LogInfo($"_east: {level}");
+            //    index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _west.x, pointY + _west.y));
+            //    level = _soilMoistureSimulator.MoistureLevels[index];
+            //    WaterAbsorptionPlugin.Log.LogInfo($"_west: {level}");
+            //    index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _south.x, pointY + _south.y));
+            //    level = _soilMoistureSimulator.MoistureLevels[index];
+            //    WaterAbsorptionPlugin.Log.LogInfo($"_south: {level}");
+            //    index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _northeast.x, pointY + _northeast.y));
+            //    level = _soilMoistureSimulator.MoistureLevels[index];
+            //    WaterAbsorptionPlugin.Log.LogInfo($"_northeast: {level}");
+            //    index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _northwest.x, pointY + _northwest.y));
+            //    level = _soilMoistureSimulator.MoistureLevels[index];
+            //    WaterAbsorptionPlugin.Log.LogInfo($"_northwest: {level}");
+            //    index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _southeast.x, pointY + _southeast.y));
+            //    level = _soilMoistureSimulator.MoistureLevels[index];
+            //    WaterAbsorptionPlugin.Log.LogInfo($"_southeast: {level}");
+            //    index = _mapIndexService.CoordinatesToIndex(new Vector2Int(pointX + _southwest.x, pointY + _southwest.y));
+            //    level = _soilMoistureSimulator.MoistureLevels[index];
+            //    WaterAbsorptionPlugin.Log.LogInfo($"_southwest: {level}");
+            //}
         }
     }
 }
