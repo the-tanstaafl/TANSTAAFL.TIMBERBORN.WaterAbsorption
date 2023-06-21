@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TANSTAAFL.TIMBERBORN.WaterAbsorption.Config;
 using TANSTAAFL.TIMBERBORN.WaterAbsorption.TickTracker;
 using TimberApi.ConfiguratorSystem;
 using TimberApi.EntityLinkerSystem;
@@ -19,6 +20,9 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         public void Configure(IContainerDefinition containerDefinition)
         {
             containerDefinition.Bind<TickableSingleton>().AsSingleton();
+            containerDefinition.Bind<WaterAbsorptionConfigLoader>().AsSingleton();
+            containerDefinition.Bind<WaterAbsorptionConfigSerializer>().AsSingleton();
+            containerDefinition.Bind<WaterAbsorptionConfigBox>().AsSingleton();
             containerDefinition.MultiBind<TemplateModule>().ToProvider(ProvideTemplateModule).AsSingleton();
         }
 

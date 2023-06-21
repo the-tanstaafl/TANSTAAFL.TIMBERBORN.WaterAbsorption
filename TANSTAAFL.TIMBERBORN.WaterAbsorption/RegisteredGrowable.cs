@@ -13,6 +13,7 @@ using Timberborn.WaterSystem;
 using Timberborn.Goods;
 using UnityEngine;
 using Timberborn.NaturalResourcesLifeCycle;
+using TANSTAAFL.TIMBERBORN.WaterAbsorption.Config;
 
 namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 {
@@ -100,7 +101,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 _irrigationAccumulator[coordinates.y][coordinates.x] = 0;
             }
 
-            _irrigationAccumulator[coordinates.y][coordinates.x] += WaterAbsorptionPlugin.Config.IrrigatorTickIncrement;
+            _irrigationAccumulator[coordinates.y][coordinates.x] += WaterAbsorptionConfigLoader._savedConfig.IrrigatorTickIncrement;
 
             if (_irrigationAccumulator[coordinates.y][coordinates.x] < 1)
             {
@@ -177,7 +178,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            _waterSimulator.UpdateWaterDepth(new Vector2Int(_cachedX.Value, _cachedY.Value), WaterAbsorptionPlugin.Config.GrowableTickWaterDepth);
+            _waterSimulator.UpdateWaterDepth(new Vector2Int(_cachedX.Value, _cachedY.Value), WaterAbsorptionConfigLoader._savedConfig.GrowableTickWaterDepth);
         }
     }
 }

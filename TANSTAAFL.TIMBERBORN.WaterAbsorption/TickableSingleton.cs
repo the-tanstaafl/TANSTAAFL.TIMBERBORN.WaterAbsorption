@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TANSTAAFL.TIMBERBORN.WaterAbsorption.Config;
 using Timberborn.EntitySystem;
 using Timberborn.MapIndexSystem;
 using Timberborn.TickSystem;
@@ -28,7 +29,13 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.TickTracker
 
         public void Tick()
         {
-            if (CurrentTick == WaterAbsorptionPlugin.Config.MaxTicks - 1)
+            if (WaterAbsorptionConfigLoader._savedConfig == null)
+            {
+                WaterAbsorptionPlugin.Log.LogWarning("Tick null");
+                return;
+            }
+
+            if (CurrentTick == WaterAbsorptionConfigLoader._savedConfig.MaxTicks - 1)
             {
                 CurrentTick = -1;
             }

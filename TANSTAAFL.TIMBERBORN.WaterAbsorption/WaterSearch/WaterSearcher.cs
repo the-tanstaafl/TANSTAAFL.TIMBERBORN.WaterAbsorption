@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TANSTAAFL.TIMBERBORN.WaterAbsorption.Config;
 using Timberborn.BlockSystem;
 using Timberborn.MapIndexSystem;
 using Timberborn.SoilMoistureSystem;
@@ -132,7 +133,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.WaterSearch
 
         private bool ShouldStopSearch(float highest, short depth)
         {
-            return highest == 0 || depth > WaterAbsorptionPlugin.Config.MaxSearchDepth;
+            return highest == 0 || depth > WaterAbsorptionConfigLoader._savedConfig.MaxSearchDepth;
         }
 
         private (bool foundWater, bool waterIsIrrigationTower) CheckIfWaterOrIrrigationTower(int x, int y)

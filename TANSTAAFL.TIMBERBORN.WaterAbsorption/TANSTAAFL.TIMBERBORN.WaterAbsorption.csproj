@@ -4,10 +4,11 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
 	<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	<LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="TimberApi" Version="0.5.1" />
+		<PackageReference Include="TimberApi" Version="0.5.5.3" />
 	</ItemGroup>
 
 </Project>
