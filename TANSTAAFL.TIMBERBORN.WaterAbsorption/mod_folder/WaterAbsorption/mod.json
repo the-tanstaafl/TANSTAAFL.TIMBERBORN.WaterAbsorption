@@ -1,7 +1,7 @@
 {
   "Name": "WaterAbsorption",
   "Author": "TANSTAAFL",
-  "Version": "1.0.7",
+  "Version": "1.0.8",
   "UniqueId": "tanstaafl.plugins.waterabsorption",
   "MinimumApiVersion": "0.5.2",
   "MinimumGameVersion": "0.2.8",

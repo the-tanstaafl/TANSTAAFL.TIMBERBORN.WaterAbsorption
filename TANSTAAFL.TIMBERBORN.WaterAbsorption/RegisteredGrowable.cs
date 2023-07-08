@@ -14,10 +14,11 @@ using Timberborn.Goods;
 using UnityEngine;
 using Timberborn.NaturalResourcesLifeCycle;
 using TANSTAAFL.TIMBERBORN.WaterAbsorption.Config;
+using Timberborn.BaseComponentSystem;
 
 namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 {
-    public class RegisteredGrowable : MonoBehaviour, IRegisteredComponent
+    public class RegisteredGrowable : BaseComponent, IRegisteredComponent
     {
         internal Growable _growable;
         internal DryObject _dryObject;
@@ -46,10 +47,10 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
         public void Awake()
         {
-            _growable = GetComponent<Growable>();
-            _dryObject = GetComponent<DryObject>();
-            _blockObject = GetComponent<BlockObject>();
-            _livingNaturalResource = GetComponent<LivingNaturalResource>();
+            _growable = GetComponentFast<Growable>();
+            _dryObject = GetComponentFast<DryObject>();
+            _blockObject = GetComponentFast<BlockObject>();
+            _livingNaturalResource = GetComponentFast<LivingNaturalResource>();
         }
 
         internal void ConsumeWater()

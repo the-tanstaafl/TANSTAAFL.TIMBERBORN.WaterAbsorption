@@ -20,10 +20,11 @@ using Timberborn.Goods;
 using UnityEngine;
 using Timberborn.IrrigationSystem;
 using Timberborn.Common;
+using Timberborn.BaseComponentSystem;
 
 namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 {
-    public class RegisteredIrrigator : MonoBehaviour, IRegisteredComponent
+    public class RegisteredIrrigator : BaseComponent, IRegisteredComponent
     {
         internal IrrigationTower _irrigationTower;
         internal BlockObject _blockObject;
@@ -42,9 +43,9 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
         public void Awake()
         {
-            _irrigationTower = GetComponent<IrrigationTower>();
-            _blockObject = GetComponent<BlockObject>();
-            _goodConsumingBuilding = GetComponent<GoodConsumingBuilding>();
+            _irrigationTower = GetComponentFast<IrrigationTower>();
+            _blockObject = GetComponentFast<BlockObject>();
+            _goodConsumingBuilding = GetComponentFast<GoodConsumingBuilding>();
             _goodConsumingBuilding._goodPerHour = 0f;
         }
 
