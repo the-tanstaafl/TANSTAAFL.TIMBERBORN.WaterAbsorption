@@ -29,6 +29,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         private short _cacheAge = 0;
         private System.Random _random = new System.Random();
 
+        private static EntityComponentRegistry _entityComponentRegistry;
         private static MapIndexService _mapIndexService;
         private static WaterSimulator _waterSimulator;
         private static SoilMoistureSimulator _soilMoistureSimulator;
@@ -38,8 +39,9 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         private static bool logDebug = false;
 
         [Inject]
-        public void InjectDependencies(MapIndexService mapIndexService, WaterSimulator waterSimulator, SoilMoistureSimulator soilMoistureSimulator)
+        public void InjectDependencies(EntityComponentRegistry entityComponentRegistry, MapIndexService mapIndexService, WaterSimulator waterSimulator, SoilMoistureSimulator soilMoistureSimulator)
         {
+            _entityComponentRegistry = entityComponentRegistry;
             _mapIndexService = mapIndexService;
             _waterSimulator = waterSimulator;
             _soilMoistureSimulator = soilMoistureSimulator;
@@ -90,7 +92,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
         private void ConsumeWaterFromIrrigator()
         {
-            var coordinates = RegisteredIrrigator._irrigationTowerEntranceLocations[new Vector2Int(_cachedX.Value, _cachedY.Value)];
+            var coordinates = IrrigatorHandler._irrigationTowerEntranceLocations[new Vector2Int(_cachedX.Value, _cachedY.Value)];
 
             if (!_irrigationAccumulator.ContainsKey(coordinates.y))
             {
@@ -111,7 +113,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
             _irrigationAccumulator[coordinates.y][coordinates.x] = 0;
 
-            var irrigator = RegisteredIrrigator.GetIrrigators()
+            var irrigator = IrrigatorHandler.GetIrrigators(_entityComponentRegistry)
                 .Where(x => x._blockObject.Coordinates.x == coordinates.x && x._blockObject.Coordinates.y == coordinates.y)
                 .FirstOrDefault();
 
@@ -153,7 +155,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                     return (true, false);
                 }
                 
-                if (RegisteredIrrigator._irrigationTowerLocations.Any(x => x.x == _cachedX.Value && x.y == _cachedY.Value))
+                if (IrrigatorHandler._irrigationTowerLocations.Any(x => x.x == _cachedX.Value && x.y == _cachedY.Value))
                 {
                     _cacheAge++;
                     return (true, true);

@@ -30,7 +30,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
             }
 
             WaterService.GenerateWateredMap(waterMap, mapIndexService);
-            RegisteredIrrigator.GenerateIrrigationTowerLocations();
+            IrrigatorHandler.GenerateIrrigationTowerLocations(entityComponentRegistry);
 
             foreach (var growable in growables.Where(x => x._growable.name == growableType))
             {

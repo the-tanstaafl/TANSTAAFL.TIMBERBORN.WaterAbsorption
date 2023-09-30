@@ -145,7 +145,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.WaterSearch
                 return (true, false);
             }
 
-            if (RegisteredIrrigator._irrigationTowerLocations.Any(item => item.x == x && item.y == y))
+            if (IrrigatorHandler._irrigationTowerLocations.Any(item => item.x == x && item.y == y))
             {
                 _registeredGrowable._cachedX = x;
                 _registeredGrowable._cachedY = y;
