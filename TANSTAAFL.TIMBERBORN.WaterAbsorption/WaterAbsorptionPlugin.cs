@@ -18,6 +18,7 @@ using Timberborn.MapIndexSystem;
 using Timberborn.NaturalResourcesModelSystem;
 using Timberborn.NaturalResourcesReproduction;
 using Timberborn.Options;
+using Timberborn.OptionsGame;
 using Timberborn.Persistence;
 using Timberborn.SoilMoistureSystem;
 using Timberborn.TickSystem;
@@ -42,33 +43,16 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(OptionsBox), "GetPanel")]
+        [HarmonyPatch(typeof(GameOptionsBox), "GetPanel")]
         static void ShowConfigBox(ref VisualElement __result)
         {
             VisualElement root = __result.Query("OptionsBox");
-            Button button = new() { classList = { "menu-button" } };
 
+            Button button = new() { classList = { "menu-button" } };
             button.text = "WaterAbsorption config";
             button.clicked += WaterAbsorptionConfigBox.OpenOptionsDelegate;
+
             root.Insert(4, button);
         }
-
-        ///// <summary>
-        ///// Patch the WaterSimulator.Load to alter the Evaporation values
-        ///// </summary>
-        ///// <param name="__instance"></param>
-        //[HarmonyPatch(typeof(WaterSimulator), nameof(WaterSimulator.Load))]
-        //public static void Postfix(WaterSimulator __instance)
-        //{
-        //    Log.LogWarning($"normal: {__instance._waterSimulationSettings._normalEvaporationSpeed}");
-        //    Log.LogWarning($"fast: {__instance._waterSimulationSettings._fastEvaporationSpeed}");
-
-        //    //__instance._waterSimulationSettings._fastEvaporationDepthThreshold
-        //    if (WaterAbsorptionConfigLoader._savedConfig != null)
-        //    {
-        //        __instance._waterSimulationSettings._normalEvaporationSpeed *= WaterAbsorptionConfigLoader._savedConfig.NormalEvaporationSpeed;
-        //        __instance._waterSimulationSettings._fastEvaporationSpeed *= WaterAbsorptionConfigLoader._savedConfig.FastEvaporationSpeed;
-        //    }
-        //}
     }
 }

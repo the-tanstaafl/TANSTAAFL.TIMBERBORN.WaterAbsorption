@@ -12,9 +12,9 @@ using Timberborn.SoilMoistureSystem;
 using Timberborn.WaterSystem;
 using Timberborn.Goods;
 using UnityEngine;
-using Timberborn.NaturalResourcesLifeCycle;
 using TANSTAAFL.TIMBERBORN.WaterAbsorption.Config;
 using Timberborn.BaseComponentSystem;
+using Timberborn.NaturalResourcesLifecycle;
 
 namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 {
@@ -31,7 +31,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
         private static EntityComponentRegistry _entityComponentRegistry;
         private static MapIndexService _mapIndexService;
-        private static WaterSimulator _waterSimulator;
+        private static WaterChangeService _waterChangeService;
         private static SoilMoistureSimulator _soilMoistureSimulator;
 
         private static Dictionary<int, Dictionary<int, float>> _irrigationAccumulator = new Dictionary<int, Dictionary<int, float>>();
@@ -39,11 +39,11 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         private static bool logDebug = false;
 
         [Inject]
-        public void InjectDependencies(EntityComponentRegistry entityComponentRegistry, MapIndexService mapIndexService, WaterSimulator waterSimulator, SoilMoistureSimulator soilMoistureSimulator)
+        public void InjectDependencies(EntityComponentRegistry entityComponentRegistry, MapIndexService mapIndexService, WaterChangeService waterChangeService, SoilMoistureSimulator soilMoistureSimulator)
         {
             _entityComponentRegistry = entityComponentRegistry;
             _mapIndexService = mapIndexService;
-            _waterSimulator = waterSimulator;
+            _waterChangeService = waterChangeService;
             _soilMoistureSimulator = soilMoistureSimulator;
         }
 
@@ -181,7 +181,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 return;
             }
 
-            _waterSimulator.UpdateWaterDepth(new Vector2Int(_cachedX.Value, _cachedY.Value), WaterAbsorptionConfigLoader._savedConfig.GrowableTickWaterDepth);
+            _waterChangeService.EnqueueWaterChange(new Vector2Int(_cachedX.Value, _cachedY.Value), WaterAbsorptionConfigLoader._savedConfig.GrowableTickWaterDepth, 0);
         }
     }
 }
