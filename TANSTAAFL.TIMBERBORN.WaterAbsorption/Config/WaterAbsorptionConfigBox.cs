@@ -17,17 +17,15 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.Config
         public static Action OpenOptionsDelegate;
         private readonly DialogBoxShower _dialogBoxShower;
         private readonly UIBuilder _builder;
-        private NavigationDistance _navigationDistance;
 
         private VisualElement _root;
         private WaterSimulationSettings _waterSimulationSettings;
 
-        public WaterAbsorptionConfigBox(WaterSimulationSettings waterSimulationSettings, DialogBoxShower dialogBoxShower, UIBuilder builder, NavigationDistance navigationDistance)
+        public WaterAbsorptionConfigBox(WaterSimulationSettings waterSimulationSettings, DialogBoxShower dialogBoxShower, UIBuilder builder)
         {
             OpenOptionsDelegate = OpenOptionsPanel;
             _dialogBoxShower = dialogBoxShower;
             _builder = builder;
-            _navigationDistance = navigationDistance;
             _waterSimulationSettings = waterSimulationSettings;
         }
 
@@ -48,12 +46,6 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.Config
                                         text: $"Fast Evaporation Speed Multiplier: default({defaultValues.FastEvaporationSpeedMultiplier})",
                                         builder: builder => builder.SetStyle(style => style.alignSelf = Align.Center)))
                             .AddPreset(factory => factory.TextFields().InGameTextField(new Length(100, Pixel), name: "FastEvaporationSpeedMultiplierTextField"))
-
-                            .AddPreset(factory => factory.Labels()
-                                .GameTextBig(name: "IrrigatorTickIncrementLabel",
-                                        text: $"Irrigator Tick Increment: default({defaultValues.IrrigatorTickIncrement})",
-                                        builder: builder => builder.SetStyle(style => style.alignSelf = Align.Center)))
-                            .AddPreset(factory => factory.TextFields().InGameTextField(new Length(100, Pixel), name: "IrrigatorTickIncrementTextField"))
 
                             .AddPreset(factory => factory.Labels()
                                 .GameTextBig(name: "GrowableTickWaterDepthLabel",
@@ -81,9 +73,6 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.Config
             var fastEvaporationTextField = _root.Q<TextField>("FastEvaporationSpeedMultiplierTextField");
             fastEvaporationTextField.value = WaterAbsorptionConfigLoader._savedConfig.FastEvaporationSpeedMultiplier.ToString();
 
-            var irrigatorTickIncrementTextField = _root.Q<TextField>("IrrigatorTickIncrementTextField");
-            irrigatorTickIncrementTextField.value = WaterAbsorptionConfigLoader._savedConfig.IrrigatorTickIncrement.ToString();
-
             var growableTickWaterDepthTextField = _root.Q<TextField>("GrowableTickWaterDepthTextField");
             growableTickWaterDepthTextField.value = WaterAbsorptionConfigLoader._savedConfig.GrowableTickWaterDepth.ToString();
 
@@ -105,7 +94,6 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.Config
         {
             var normalEvaporationText = _root.Q<TextField>("NormalEvaporationSpeedMultiplierTextField").value;
             var fastEvaporationText = _root.Q<TextField>("FastEvaporationSpeedMultiplierTextField").value;
-            var irrigatorTickIncrementText = _root.Q<TextField>("IrrigatorTickIncrementTextField").value;
             var growableTickWaterDepthText = _root.Q<TextField>("GrowableTickWaterDepthTextField").value;
             var maxTicksText = _root.Q<TextField>("MaxTicksTextField").value;
             var maxSearchDepthText = _root.Q<TextField>("MaxSearchDepthTextField").value;
@@ -120,11 +108,6 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.Config
             if (float.TryParse(fastEvaporationText, out float fastEvaporation))
             {
                 savedConfig.FastEvaporationSpeedMultiplier = fastEvaporation;
-            }
-
-            if (float.TryParse(irrigatorTickIncrementText, out float irrigatorTickIncrement))
-            {
-                savedConfig.IrrigatorTickIncrement = irrigatorTickIncrement;
             }
 
             if (float.TryParse(growableTickWaterDepthText, out float growableTickWaterDepth))

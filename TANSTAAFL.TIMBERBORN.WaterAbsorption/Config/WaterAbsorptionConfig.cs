@@ -9,12 +9,10 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
     {
         public WaterAbsorptionConfig() { }
         public WaterAbsorptionConfig(float normalEvaporationSpeedMultiplier, float fastEvaporationSpeedMultiplier,
-            float irrigatorTickIncrement, float growableTickWaterDepth,
-            int maxTicks, int maxSearchDepth)
+            float growableTickWaterDepth, int maxTicks, int maxSearchDepth)
         {
             NormalEvaporationSpeedMultiplier = normalEvaporationSpeedMultiplier;
             FastEvaporationSpeedMultiplier = fastEvaporationSpeedMultiplier;
-            IrrigatorTickIncrement = irrigatorTickIncrement;
             GrowableTickWaterDepth = growableTickWaterDepth;
             MaxTicks = maxTicks;
             MaxSearchDepth = maxSearchDepth;
@@ -25,7 +23,6 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
         public float NormalEvaporationSpeedMultiplier = 0.25f;
         public float FastEvaporationSpeedMultiplier = 0.5f;
-        public float IrrigatorTickIncrement = 0.001f;
         public float GrowableTickWaterDepth = -0.00001f;
         public int MaxTicks = 13;
         public int MaxSearchDepth = 25;

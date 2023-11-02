@@ -64,11 +64,11 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
                 _cachedY = null;
             }
 
-            (bool foundWater, bool waterIsIrrigationTower) = CheckIfCached();
+            bool foundWater = CheckIfCached();
 
             if (!foundWater)
             {
-                (foundWater, waterIsIrrigationTower) = new WaterSearch.WaterSearcher(this, _mapIndexService, _soilMoistureSimulator).FindLocationAdvanced();
+                foundWater = new WaterSearch.WaterSearcher(this, _mapIndexService, _soilMoistureSimulator).FindLocationAdvanced();
             }
 
             if (!foundWater)
@@ -80,93 +80,25 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
 
                 return;
             }
-
-            if (waterIsIrrigationTower)
-            {
-                ConsumeWaterFromIrrigator();
-                return;
-            }
-
             UpdateWaterDepth();
         }
-
-        private void ConsumeWaterFromIrrigator()
-        {
-            var coordinates = IrrigatorHandler._irrigationTowerEntranceLocations[new Vector2Int(_cachedX.Value, _cachedY.Value)];
-
-            if (!_irrigationAccumulator.ContainsKey(coordinates.y))
-            {
-                _irrigationAccumulator[coordinates.y] = new Dictionary<int, float>();
-            }
-
-            if (!_irrigationAccumulator[coordinates.y].ContainsKey(coordinates.x))
-            {
-                _irrigationAccumulator[coordinates.y][coordinates.x] = 0;
-            }
-
-            _irrigationAccumulator[coordinates.y][coordinates.x] += WaterAbsorptionConfigLoader._savedConfig.IrrigatorTickIncrement;
-
-            if (_irrigationAccumulator[coordinates.y][coordinates.x] < 1)
-            {
-                return;
-            }
-
-            _irrigationAccumulator[coordinates.y][coordinates.x] = 0;
-
-            var irrigator = IrrigatorHandler.GetIrrigators(_entityComponentRegistry)
-                .Where(x => x._blockObject.Coordinates.x == coordinates.x && x._blockObject.Coordinates.y == coordinates.y)
-                .FirstOrDefault();
-
-            if (irrigator == null)
-            {
-                if (logDebug)
-                {
-                    WaterAbsorptionPlugin.Log.LogWarning($"NO IRRIGATION TOWER FOUND!!!");
-                }
-
-                return;
-            }
-
-            var amount = irrigator._goodConsumingBuilding.Inventory.AmountInStock("Water");
-            if (amount == 0)
-            {
-                if (logDebug)
-                {
-                    WaterAbsorptionPlugin.Log.LogWarning($"NO WATER IN IRRIGATION TOWER!!!");
-                }
-
-                return;
-            }
-
-            irrigator._goodConsumingBuilding.Inventory.Take(new GoodAmount("Water", 1));
-            if (irrigator._goodConsumingBuilding.Inventory.UnreservedAmountInStock(irrigator._goodConsumingBuilding._supply) <= 0)
-            {
-                irrigator._goodConsumingBuilding._supplyLeft = 0;
-            }
-        }
         
-        private (bool foundWater, bool waterIsIrrigationTower) CheckIfCached()
+        private bool CheckIfCached()
         {
             if (_cachedX.HasValue && _cachedY.HasValue)
             {
                 if (WaterService._wateredMap[_cachedY.Value][_cachedX.Value])
                 {
                     _cacheAge++;
-                    return (true, false);
+                    return true;
                 }
                 
-                if (IrrigatorHandler._irrigationTowerLocations.Any(x => x.x == _cachedX.Value && x.y == _cachedY.Value))
-                {
-                    _cacheAge++;
-                    return (true, true);
-                }
-
                 _cacheAge = 0;
                 _cachedX = null;
                 _cachedY = null;
             }
 
-            return (false, false);
+            return false;
         }
 
         private void UpdateWaterDepth()

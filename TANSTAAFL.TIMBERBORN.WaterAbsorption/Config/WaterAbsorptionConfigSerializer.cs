@@ -9,7 +9,6 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.Config
     {
         private static readonly PropertyKey<float> NormalEvaporationSpeedMultiplierKey = new PropertyKey<float>("NormalEvaporationSpeedMultiplier");
         private static readonly PropertyKey<float> FastEvaporationSpeedMultiplierKey = new PropertyKey<float>("FastEvaporationSpeedMultiplier");
-        private static readonly PropertyKey<float> IrrigatorTickIncrementKey = new PropertyKey<float>("IrrigatorTickIncrement");
         private static readonly PropertyKey<float> GrowableTickWaterDepthKey = new PropertyKey<float>("GrowableTickWaterDepth");
         private static readonly PropertyKey<int> MaxTicksKey = new PropertyKey<int>("MaxTicks");
         private static readonly PropertyKey<int> MaxSearchDepthKey = new PropertyKey<int>("MaxSearchDepth");
@@ -18,7 +17,6 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.Config
         {
             objectSaver.Set(NormalEvaporationSpeedMultiplierKey, value.NormalEvaporationSpeedMultiplier);
             objectSaver.Set(FastEvaporationSpeedMultiplierKey, value.FastEvaporationSpeedMultiplier);
-            objectSaver.Set(IrrigatorTickIncrementKey, value.IrrigatorTickIncrement);
             objectSaver.Set(GrowableTickWaterDepthKey, value.GrowableTickWaterDepth);
             objectSaver.Set(MaxTicksKey, value.MaxTicks);
             objectSaver.Set(MaxSearchDepthKey, value.MaxSearchDepth);
@@ -40,12 +38,6 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.Config
                 fastEvaporation = objectLoader.Get(FastEvaporationSpeedMultiplierKey);
             }
 
-            var irrigatorTickIncrement = defaultValues.IrrigatorTickIncrement;
-            if (objectLoader.Has(IrrigatorTickIncrementKey))
-            {
-                irrigatorTickIncrement = objectLoader.Get(IrrigatorTickIncrementKey);
-            }
-
             var growableTickWaterDepth = defaultValues.GrowableTickWaterDepth;
             if (objectLoader.Has(GrowableTickWaterDepthKey))
             {
@@ -64,7 +56,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.Config
                 maxSearchDepth = objectLoader.Get(MaxSearchDepthKey);
             }
 
-            return new WaterAbsorptionConfig(normalEvaporation, fastEvaporation, irrigatorTickIncrement, growableTickWaterDepth, maxTicks, maxSearchDepth);
+            return new WaterAbsorptionConfig(normalEvaporation, fastEvaporation, growableTickWaterDepth, maxTicks, maxSearchDepth);
         }
     }
 }

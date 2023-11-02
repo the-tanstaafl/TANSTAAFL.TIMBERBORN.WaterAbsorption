@@ -9,7 +9,6 @@ using TimberApi.EntityLinkerSystem;
 using TimberApi.SceneSystem;
 using Timberborn.Buildings;
 using Timberborn.Growing;
-using Timberborn.IrrigationSystem;
 using Timberborn.TemplateSystem;
 
 namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
@@ -30,7 +29,6 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
         {
             var builder = new TemplateModule.Builder();
             builder.AddDecorator<Growable, RegisteredGrowable>();
-            builder.AddDecorator<IrrigationTower, RegisteredIrrigator>();
             return builder.Build();
         }
     }

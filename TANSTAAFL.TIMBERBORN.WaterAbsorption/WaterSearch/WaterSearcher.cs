@@ -24,7 +24,7 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.WaterSearch
             _soilMoistureSimulator = soilMoistureSimulator;
         }
 
-        internal (bool foundWater, bool waterIsIrrigationTower) FindLocationAdvanced()
+        internal bool FindLocationAdvanced()
         {
             var moistureLevels = new Dictionary<Direction.CardinalDirection, float>();
 
@@ -35,21 +35,21 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.WaterSearch
 
                 if (!IsInsideMap(x, y)) continue;
 
-                var (foundWater, waterIsIrrigationTower) = CheckIfWaterOrIrrigationTower(x, y);
-                if (foundWater) return (true, waterIsIrrigationTower);
+                var foundWater = CheckIfWaterOrIrrigationTower(x, y);
+                if (foundWater) return true;
 
                 var moistureLevel = GetMoistureLevel(x, y);
                 moistureLevels[cardinalDirection] = moistureLevel;
             }
 
             var highestMoistureDirection = GetHighestMoistureDirection(moistureLevels);
-            if (highestMoistureDirection == null) return (false, false);
+            if (highestMoistureDirection == null) return false;
 
             var (newX, newY) = GetNeighborCoordinates(highestMoistureDirection.Value);
             return Find(newX, newY, 0, highestMoistureDirection.Value);
         }
 
-        private (bool foundWater, bool waterIsIrrigationTower) Find(int x, int y, short depth, Direction.CardinalDirection cardinalDirection)
+        private bool Find(int x, int y, short depth, Direction.CardinalDirection cardinalDirection)
         {
             depth++;
 
@@ -63,43 +63,43 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.WaterSearch
 
                 bool foundWater = false;
                 bool waterIsIrrigationTower = false;
-                (foundWater, waterIsIrrigationTower, highest, cardinalDirection) = ProccessCardinalDirection(pointX, pointY, highest, cardinalDirection, point);
+                (foundWater, highest, cardinalDirection) = ProccessCardinalDirection(pointX, pointY, highest, cardinalDirection, point);
                 if (foundWater)
                 {
-                    return (foundWater, waterIsIrrigationTower);
+                    return foundWater;
                 }
             }
 
             if (ShouldStopSearch(highest, depth))
             {
-                return (false, false);
+                return false;
             }
 
             var newXY = Direction.CardinalDirectionXY[cardinalDirection];
             return Find(x + newXY.x, y + newXY.y, depth, cardinalDirection);
         }
 
-        private (bool foundWater, bool waterIsIrrigationTower, float highest, Direction.CardinalDirection direction) ProccessCardinalDirection(int pointX, int pointY, float highest, Direction.CardinalDirection oldDirection, Direction.CardinalDirection newDirection)
+        private (bool foundWater, float highest, Direction.CardinalDirection direction) ProccessCardinalDirection(int pointX, int pointY, float highest, Direction.CardinalDirection oldDirection, Direction.CardinalDirection newDirection)
         {
             if (!IsInsideMap(pointX, pointY))
             {
-                return (false, false, highest, oldDirection);
+                return (false, highest, oldDirection);
             }
 
-            var (foundWater, waterIsIrrigationTower) = CheckIfWaterOrIrrigationTower(pointX, pointY);
+            var foundWater = CheckIfWaterOrIrrigationTower(pointX, pointY);
             if (foundWater)
             {
-                return (foundWater, waterIsIrrigationTower, highest, oldDirection);
+                return (foundWater, highest, oldDirection);
             }
 
             var level = GetMoistureLevel(pointX, pointY);
 
             if (level > highest)
             {
-                return (false, false, level, newDirection);
+                return (false, level, newDirection);
             }
 
-            return (false, false, highest, oldDirection);
+            return (false, highest, oldDirection);
         }
 
         private float GetMoistureLevel(int pointX, int pointY)
@@ -136,23 +136,16 @@ namespace TANSTAAFL.TIMBERBORN.WaterAbsorption.WaterSearch
             return highest == 0 || depth > WaterAbsorptionConfigLoader._savedConfig.MaxSearchDepth;
         }
 
-        private (bool foundWater, bool waterIsIrrigationTower) CheckIfWaterOrIrrigationTower(int x, int y)
+        private bool CheckIfWaterOrIrrigationTower(int x, int y)
         {
             if (WaterService._wateredMap[y][x])
             {
                 _registeredGrowable._cachedX = x;
                 _registeredGrowable._cachedY = y;
-                return (true, false);
+                return true;
             }
 
-            if (IrrigatorHandler._irrigationTowerLocations.Any(item => item.x == x && item.y == y))
-            {
-                _registeredGrowable._cachedX = x;
-                _registeredGrowable._cachedY = y;
-                return (true, true);
-            }
-
-            return (false, false);
+            return false;
         }
 
         private void LogAround(int x, int y, short direction, float highest, int pointX, int pointY)

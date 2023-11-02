@@ -6,25 +6,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using TANSTAAFL.TIMBERBORN.WaterAbsorption.Config;
-using TANSTAAFL.TIMBERBORN.WaterAbsorption.TickTracker;
-using TimberApi.Common.Extensions;
 using TimberApi.ConsoleSystem;
 using TimberApi.ModSystem;
-using Timberborn.EditorStarter;
-using Timberborn.EntitySystem;
-using Timberborn.Growing;
-using Timberborn.IrrigationSystem;
-using Timberborn.MapIndexSystem;
-using Timberborn.NaturalResourcesModelSystem;
-using Timberborn.NaturalResourcesReproduction;
-using Timberborn.Options;
 using Timberborn.OptionsGame;
-using Timberborn.Persistence;
-using Timberborn.SoilMoistureSystem;
-using Timberborn.TickSystem;
-using Timberborn.WaterSystem;
-using UnityEngine;
-using UnityEngine.Bindings;
 using UnityEngine.UIElements;
 
 namespace TANSTAAFL.TIMBERBORN.WaterAbsorption
